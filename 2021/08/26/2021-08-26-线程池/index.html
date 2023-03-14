@@ -1,0 +1,313 @@
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>  Java线程池 |    white.</title>
+  <meta name="description" content="线程池原理分析">
+  <!-- 标签页图标 -->
+  
+
+  <!-- 图标库 -->
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@2.2.0/fonts/remixicon.css" rel="stylesheet">
+  <!-- 动画库 -->
+  
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fushaolei/cdn-white@1.0/css/animate.css"/>
+  
+  <!-- css文件 -->
+  
+<link rel="stylesheet" href="/css/white.css">
+
+  <!-- 代码高亮 -->
+  
+<meta name="generator" content="Hexo 5.4.2"></head>
+
+
+<body>
+
+<div class="menu-outer">
+    <div class="menu-inner">
+      <div class="menu-site-name  animate__animated  animate__fadeInUp">
+        <a href="/">
+          white.
+        </a>
+        
+      </div>
+      <div class="menu-group">
+        <ul class="menu-ul">
+        
+          <a href="/" class="nav-link">
+            <li class="menu-li  animate__animated  animate__fadeInUp">
+              HOME
+            </li>
+          </a>
+        
+          <a href="/archives" class="nav-link">
+            <li class="menu-li  animate__animated  animate__fadeInUp">
+              BLOG
+            </li>
+          </a>
+        
+        
+        
+          <li class="menu-li animate__animated  animate__fadeInUp" id="mobile-menu">
+            <i class="ri-menu-line"></i>
+          </li>
+        
+        </ul>
+
+      </div>
+
+    </div>
+</div>
+<div id="mobile-main" class="animate__animated  animate__fadeIn">
+  <div class="mobile-menu-inner">
+    <div class="mobile-menu-site-name animate__animated  animate__fadeInUp">
+      <a href="/">
+        white.
+      </a>
+    </div>
+    <div class="mobile-menu-group" id="mobile-close">
+      <i class="ri-close-line"></i>
+    </div>
+
+  </div>
+
+  <div class="mobile-menu-div">
+  
+    <a href="/" class="mobile-nav-link">
+      <div class="mobile-menu-child animate__animated  animate__fadeInUp">
+        <span>HOME</span>
+      </div>
+    </a>
+  
+    <a href="/archives" class="mobile-nav-link">
+      <div class="mobile-menu-child animate__animated  animate__fadeInUp">
+        <span>BLOG</span>
+      </div>
+    </a>
+  
+  
+  </div>
+
+
+</div>
+
+<div class="body-outer">
+  <div class="body-inner">
+    
+<article class="post-inner">
+  <div class="post-content-outer">
+    <div class="post-intro">
+      <div class="post-title animate__animated  animate__fadeInUp">Java线程池</div>
+      <div class="meta-intro animate__animated  animate__fadeInUp">Aug 26 2021</div>
+      
+    </div>
+    <div class="post-content-inner">
+      <div class="post-content-inner-space">
+
+      </div>
+      <div class="post-content-main animate__animated  animate__fadeInUp">
+        <!-- top型目录 -->
+        
+        <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>Java线程池的写法和参数是面试中出现频率很高的基础题。越是基础的东西，特别是对中高级工程师的面试者，需要回答的符合自己面试的职位等级。</p>
+<h3 id="1、线程创建销毁的开销（为什么要使用线程池）"><a href="#1、线程创建销毁的开销（为什么要使用线程池）" class="headerlink" title="1、线程创建销毁的开销（为什么要使用线程池）"></a>1、线程创建销毁的开销（为什么要使用线程池）</h3><ol>
+<li>对操作系统来说,创建一个线程的代价是十分昂贵的, 需要给它分配内存、列入调度，同时在线程切换的时候还要执行内存换页，CPU 的缓存被清空,切换回来的时候还要重新从内存中读取信息,破坏了数据的局部性。【分配内存、列入调度、内存换页、清空缓存和重新读取】</li>
+<li>Java线程的线程栈区别于堆，它是不受Java程序控制的，只受系统资源限制，如果每个用户请求都新建线程的话，很容易出现内存溢出（OOM）</li>
+<li>线程其实也是一个对象，创建一个对象，需要经过类加载过程，销毁一个对象，需要走GC垃圾回收流程</li>
+</ol>
+<p>总结：</p>
+<ol>
+<li>频繁申请/销毁资源和调度资源，将带来额外的消耗，可能会非常巨大。</li>
+<li>对资源无限申请缺少抑制手段，将引发系统资源耗尽的风险。</li>
+<li>系统无法合理管理内部的资源分布，将降低系统的稳定性。</li>
+</ol>
+<span id="more"></span>
+<h3 id="2、线程池的优势"><a href="#2、线程池的优势" class="headerlink" title="2、线程池的优势"></a>2、线程池的优势</h3><ol>
+<li>降低资源开销：由于线程是反复利用的，降低了创建线程分配资源和销毁线程的开销。</li>
+<li>提高响应速度：由于线程是提前预热的，因此减少了创建线程这段时间的开销。</li>
+<li>提高系统资源可管理性：使用线程池统一分配、管理和监控。</li>
+</ol>
+<h3 id="3、线程池详解"><a href="#3、线程池详解" class="headerlink" title="3、线程池详解"></a>3、线程池详解</h3><p>
+        <span class="lazyload-img-span">
+        <img   
+           data-src="http://img.litongxue.icu/relation.jpg" >
+        </sapn>
+      </p>
+<p>如上图所示，线程池的Java实现都是继承于JUC(java.util.concurrent)的Executor接口。这个接口只有一个execute方法，代表了其行为。ExecutorService接口继承Executor，加上了生命周期的处理方法。其常用实现类如：ThreadPoolExecutor、ScheduledThreadPoolExecutor、ForkJoinPool的默认参数构造类都有在Executors这个工具类里直接实例化。</p>
+<p><strong>但是阿里巴巴开发手册不推荐使用Executors这个工具类。</strong></p>
+<p>
+        <span class="lazyload-img-span">
+        <img   
+           data-src="http://img.litongxue.icu/AlibabaDevelopmentManual.jpg" >
+        </sapn>
+      </p>
+<p><strong>原因</strong></p>
+<p><strong>CachedThreadPool</strong></p>
+<p>创建方法：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ExecutorService cachedThreadPool = Executors.newCachedThreadPool();</span><br></pre></td></tr></table></figure>
+
+<p>源码：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"> public static ExecutorService newCachedThreadPool() &#123;</span><br><span class="line">    return new ThreadPoolExecutor(0, Integer.MAX_VALUE,</span><br><span class="line">                                  60L, TimeUnit.SECONDS,</span><br><span class="line">                                  new SynchronousQueue&lt;Runnable&gt;());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可缓存线程池：</p>
+<ol>
+<li>线程数无限制（无核心线程数，最大线程数为Integer最大值）</li>
+<li>有空闲线程则复用空闲线程，若无空闲线程则新建线程</li>
+<li>一定程序减少频繁创建/销毁线程，减少系统开销</li>
+</ol>
+<p><strong>FixedThreadPool</strong></p>
+<p>创建方法：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ExecutorService fixedThreadPool = Executors.newFixedThreadPool(int nThreads);</span><br></pre></td></tr></table></figure>
+
+<p>源码：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">public static ExecutorService newFixedThreadPool(int nThreads) &#123;</span><br><span class="line">    return new ThreadPoolExecutor(nThreads, nThreads,</span><br><span class="line">                                  0L, TimeUnit.MILLISECONDS,</span><br><span class="line">                                  new LinkedBlockingQueue&lt;Runnable&gt;());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>定长线程池：</p>
+<ol>
+<li>可控制线程最大并发数（同时执行的线程数）</li>
+<li>超出的线程会在队列中等待</li>
+</ol>
+<p><strong>ScheduledThreadPool</strong></p>
+<p>创建方法：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(int nThreads);</span><br></pre></td></tr></table></figure>
+
+<p>源码：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">public static ScheduledExecutorService newScheduledThreadPool(int corePoolSize) &#123;</span><br><span class="line">    return new ScheduledThreadPoolExecutor(corePoolSize);</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line"></span><br><span class="line">public ScheduledThreadPoolExecutor(int corePoolSize) &#123;</span><br><span class="line">    super(corePoolSize, Integer.MAX_VALUE,</span><br><span class="line">          DEFAULT_KEEPALIVE_MILLIS, MILLISECONDS,</span><br><span class="line">          new DelayedWorkQueue());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>定长线程池：</p>
+<ol>
+<li>支持定时及周期性任务执行</li>
+</ol>
+<p><strong>SingleThreadExecutor</strong></p>
+<p>创建方法：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ExecutorService singleThreadPool = Executors.newScheduledThreadPool(int nThreads);</span><br></pre></td></tr></table></figure>
+
+<p>源码：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">public static ExecutorService newSingleThreadExecutor() &#123;</span><br><span class="line">    return new FinalizableDelegatedExecutorService</span><br><span class="line">        (new ThreadPoolExecutor(1, 1,</span><br><span class="line">                                0L, TimeUnit.MILLISECONDS,</span><br><span class="line">                                new LinkedBlockingQueue&lt;Runnable&gt;()));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>单线程化的线程池：</p>
+<ol>
+<li>只会用唯一的工作线程来执行任务</li>
+<li>保证所有任务按照指定顺序(FIFO, LIFO, 优先级)执行</li>
+</ol>
+<p><strong>我们需要自己了解ThreadPoolExecutor初始化参数的含义和使用方法</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">public ThreadPoolExecutor(</span><br><span class="line">    int corePoolSize,           核心线程数</span><br><span class="line">    int maximumPoolSize,        最大线程数</span><br><span class="line">    long keepAliveTime,         存活时间</span><br><span class="line">    TimeUnit unit,            线程空闲存活时间单位</span><br><span class="line">    BlockingQueue&lt;Runnable&gt; workQueue,  阻塞队列</span><br><span class="line">    ThreadFactory threadFactory,    线程工厂</span><br><span class="line">    RejectedExecutionHandler handler)   拒绝策略</span><br></pre></td></tr></table></figure>
+
+<p>ThreadPoolExecutor有七个参数（第四个参数是时间单位），第一个是核心线程数，如果线程池无事可做，还是会保留这些线程。第二个是最大线程数，超过核心线程数的部分都会在第三个和第四个参数合起来决定的最长空闲存活时间超过后被剔除。第五个参数是阻塞队列，线程忙不过来要去这里面排队。第六个是线程池工厂，主要决定队列也装不下的线程怎么处理，最后一个是拒绝策略，默认策略是抛出异常。</p>
+<p><strong>线程池执行流程</strong></p>
+<p>
+        <span class="lazyload-img-span">
+        <img   
+           data-src="http://img.litongxue.icu/flow.jpg" >
+        </sapn>
+      </p>
+<p><strong>阻塞队列</strong></p>
+<ul>
+<li><strong>ArrayBlockingQueue</strong>：使用数组实现的有界阻塞队列，特性<strong>先进先出</strong></li>
+<li><strong>LinkedBlockingQueue</strong>：使用链表实现的阻塞队列，特性先进先出，可以设置其容量，默认为<code>Interger.MAX_VALUE</code>，特性<strong>先进先出</strong></li>
+<li><strong>PriorityBlockingQueue</strong>：使用平衡二叉树<strong>堆</strong>，实现的具有<strong>优先级</strong>的无界阻塞队列</li>
+<li><strong>DelayQueue</strong>：无界阻塞延迟队列，队列中每个元素均有过期时间，当从队列获取元素时，只有过期元素才会出队列。队列头元素是最块要过期的元素。</li>
+<li><strong>SynchronousQueue</strong>：<strong>一个不存储元素的阻塞队列</strong>，每个插入操作，必须等到另一个线程调用移除操作，否则插入操作一直处于阻塞状态</li>
+<li><strong>LinkedTransferQueue</strong>：一个由链表结构组成的无界阻塞队列</li>
+<li><strong>LinkedBlockingDeque</strong>：一个由链表结构组成的双向阻塞队列</li>
+</ul>
+<p><strong>拒绝策略</strong></p>
+<ul>
+<li><strong>AbortPolicy</strong>：当任务添加到线程池中被拒绝时，它将抛出 RejectedExecutionException异常</li>
+<li><strong>CallerRunsPolicy</strong>：当任务添加到线程池中被拒绝时，会在线程池当前正在运行的Thread线程池中处理被拒绝的任务。</li>
+<li><strong>DiscardOldestPolicy</strong>：当任务添加到线程池中被拒绝时，线程池会放弃等待队列中最旧的未处理任务，然后将被拒绝的任务添加到等待队列中。</li>
+<li><strong>DiscardPolicy</strong>：当任务添加到线程池中被拒绝时，线程池将丢弃被拒绝的任务。</li>
+<li><strong>自定义</strong>：如果以上策略都不符合业务场景，可以自己定义一个拒绝策略。只要实现RejectedExecutionHandler接口，并且实现rejectedExecution方法就可以。</li>
+</ul>
+<p><strong>ForkJoinPool的原理</strong></p>
+<p> 本质上将一个任务进一步细分，内部使用“工作窃取”算法，让任务在各个CPU上尽可能均衡。</p>
+<ol>
+<li>每个工作线程都有自己的工作队列WorkQueue；</li>
+<li>这是一个双端队列，它是线程私有的；</li>
+<li>ForkJoinTask中fork的子任务，将放入运行该任务的工作线程的队头，工作线程将以LIFO（全称Last in, First out，后进先出）的顺序来处理工作队列中的任务；</li>
+<li>为了最大化地利用CPU，空闲的线程将从其它线程的队列中“窃取”任务来执行；</li>
+<li>从工作队列的尾部窃取任务，以减少竞争；</li>
+<li>双端队列的操作：push()/pop()仅在其所有者工作线程中调用，poll()是由其它线程窃取任务时调用的；</li>
+<li>当只剩下最后一个任务时，还是会存在竞争，是通过CAS来实现的；</li>
+</ol>
+<p><strong>线程池的底层原理</strong></p>
+<p> Java线程的实现是通过调用<strong>native方法</strong>调用<strong>操作系统的pthread API</strong>，由<strong>内核线程</strong>统一管理。一个<strong>实现了Runnable的类只是标识可用多线程运行</strong>，真正产生大开销的是<strong>new Thread()<strong>时进行的内核调用。</strong>而线程池技术将worker线程缓存下来进行重用</strong>。</p>
+<p><strong>线程池的关闭</strong></p>
+<p> 关闭线程池可以调用shutdownNow和shutdown两个方法来实现。</p>
+<ul>
+<li>shutdownNow：对正在执行的任务全部发出interrupt()，停止执行，对还未开始执行的任务全部取消，并且返回还没开始的任务列表。</li>
+<li>shutdown：当我们调用shutdown后，线程池将不再接受新的任务，但也不会去强制终止已经提交或者正在执行中的任务。</li>
+</ul>
+<p><strong>总结</strong></p>
+<p>本文的回答部分从线程池实现目标、实现和关键设计、底层原理四个方面说明线程池，具有一定的系统性。补充问答部分作为问题的深入在面试时被深入提问问到或者面试官示意继续深入来说的时候使用。</p>
+<h2 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h2><ul>
+<li>《Java并发编程艺术》</li>
+<li><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/87bff5cc8d8c">https://www.jianshu.com/p/87bff5cc8d8c</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/programmer_at/article/details/79799267">https://blog.csdn.net/programmer_at/article/details/79799267</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/u013332124/article/details/79587436">https://blog.csdn.net/u013332124/article/details/79587436</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.journaldev.com/1069/threadpoolexecutor-java-thread-pool-example-executorservice">https://www.journaldev.com/1069/threadpoolexecutor-java-thread-pool-example-executorservice</a></li>
+</ul>
+
+        <!-- 分类文章 -->
+        
+      </div>
+      <div class="post-content-inner-space">
+        
+          <div class="space-toc-main animate__animated  animate__fadeInUp">
+            <ol class="space-toc"><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E8%83%8C%E6%99%AF"><span class="space-toc-text">背景</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%AB%A0"><span class="space-toc-text">参考文章</span></a></li></ol>
+           </div>
+        
+      </div>
+   </div>
+    <!-- 评论 -->
+    
+  </div>
+</article>
+  </div>
+</div>
+
+
+
+<!-- 如果是home模式的话，不在首页就显示footer，如果不是home模式的话 所有都显示footer -->
+
+  <div class="footer-outer animate__animated  animate__fadeInUp">
+    <div class="footer-inner">
+    <div class="footer-text">
+    <p>Power by <a target="_blank" rel="noopener" href="http://hexo.io/">Hexo</a> Theme by <a target="_blank" rel="noopener" href="https://github.com/FuShaoLei/hexo-theme-white">White</a></p>
+
+    </div>
+    <div class="footer-contact">
+    <ul class="footer-ul">
+        
+        <li class="footer-li">
+            <a href="https://github.com/FuShaoLei/hexo-theme-white" target="_blank">
+                <i class="ri-github-line"></i>
+            </a>
+        </li>
+        
+        <li class="footer-li">
+            <a href="mailto:1563250958@qq.com" target="_blank">
+                <i class="ri-mail-line"></i>
+            </a>
+        </li>
+        
+    </ul>
+    </div>
+    </div>
+</div>
+
+
+
+
+
+
+<script src="/js/white.js"></script>
+
+
+
+</body>
+</html>
