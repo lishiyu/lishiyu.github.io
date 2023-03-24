@@ -6,26 +6,26 @@
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge" >
   <link rel="dns-prefetch" href="http://example.com">
-  <title>分布式锁之Redis与Redisson | Hexo</title>
+  <title>分布式锁之Redis与Redisson | 李同学的个人站</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="实现redis自身就是一个单线程处理器，具备互斥的特性，通过setNx，exist等命令就可以完成简单的分布式锁。  加锁命令：SETNX key value，当键不存在时，对键进行设置操作并返回成功，否则返回失败。KEY 是锁的唯一标识，一般按业务来决定命名。 解锁命令：DEL key，通过删除键值对释放锁，以便其他线程可以通过 SETNX 命令来获取锁。 锁超时：EXPIRE key time">
 <meta property="og:type" content="article">
 <meta property="og:title" content="分布式锁之Redis与Redisson">
 <meta property="og:url" content="http://example.com/2021/07/20/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B9%8BRedis%E4%B8%8ERedisson/index.html">
-<meta property="og:site_name" content="Hexo">
+<meta property="og:site_name" content="李同学的个人站">
 <meta property="og:description" content="实现redis自身就是一个单线程处理器，具备互斥的特性，通过setNx，exist等命令就可以完成简单的分布式锁。  加锁命令：SETNX key value，当键不存在时，对键进行设置操作并返回成功，否则返回失败。KEY 是锁的唯一标识，一般按业务来决定命名。 解锁命令：DEL key，通过删除键值对释放锁，以便其他线程可以通过 SETNX 命令来获取锁。 锁超时：EXPIRE key time">
-<meta property="og:locale" content="en_US">
+<meta property="og:locale">
 <meta property="og:image" content="http://img.litongxue.icu/lock_redis_1.jpg">
 <meta property="og:image" content="http://img.litongxue.icu/lock_redis_2.jpg">
 <meta property="og:image" content="http://img.litongxue.icu/lock_redis_3.jpg">
 <meta property="article:published_time" content="2021-07-20T14:24:14.000Z">
 <meta property="article:modified_time" content="2023-03-24T16:28:09.705Z">
-<meta property="article:author" content="John Doe">
+<meta property="article:author" content="李同学">
 <meta property="article:tag" content="分布式锁">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="http://img.litongxue.icu/lock_redis_1.jpg">
   
-    <link rel="alternative" href="/atom.xml" title="Hexo" type="application/atom+xml">
+    <link rel="alternative" href="/atom.xml" title="李同学的个人站" type="application/atom+xml">
   
   
     <link rel="icon" href="/favicon.png">
@@ -467,7 +467,7 @@
   <div class="outer">
     <div id="footer-info">
     	<div class="footer-left">
-    		&copy; 2023 John Doe
+    		&copy; 2023 李同学
     	</div>
       	<div class="footer-right">
       		李同学的个人站
@@ -560,19 +560,19 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">Synchronized</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color2">锁</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">分布式锁</a>
+                <a href="javascript:void(0)" class="js-tag color4">序列化</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">序列化</a>
+                <a href="javascript:void(0)" class="js-tag color3">Synchronized</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">分布式锁</a>
               </li>
              
               <li class="article-tag-list-item">
