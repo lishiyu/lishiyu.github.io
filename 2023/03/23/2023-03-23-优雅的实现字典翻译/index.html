@@ -6,22 +6,20 @@
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge" >
   <link rel="dns-prefetch" href="http://example.com">
-  <title>Synchronized原理分析 | Hexo</title>
+  <title>优雅的实现字典翻译 | Hexo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="加锁和释放锁的原理Monitorenter和Monitorexit指令，会让对象在执行，使其锁计数器加1或者减1。每一个对象在同一时间只与一个monitor(锁)相关联，而一个monitor在同一时间只能被一个线程获得，一个对象在尝试获得与这个对象相关联的Monitor锁的所有权的时候，monitorenter指令会发生如下3中情况之一：  monitor计数器为0，意味着目前还没有被获得，那这个">
+  <meta name="description" content="当我们在Java应用程序中需要对字典属性进行转换返回给前端时，如何简单、方便、并且优雅的处理是一个重要问题。在本文中，我们将介绍如何使用Java中的序列化机制来优雅地实现字典值的翻译，从而简化开发。 什么是序列化在Java中，序列化是将对象转换为字节流的过程，可以将这些字节流保存到文件中或通过网络进行传输。反序列化是将字节流转换为原始对象的过程。通过序列化和反序列化，我们可以在不同的应用程序之间传">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Synchronized原理分析">
-<meta property="og:url" content="http://example.com/2021/08/10/2021-08-10-Synchronized%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90/index.html">
+<meta property="og:title" content="优雅的实现字典翻译">
+<meta property="og:url" content="http://example.com/2023/03/23/2023-03-23-%E4%BC%98%E9%9B%85%E7%9A%84%E5%AE%9E%E7%8E%B0%E5%AD%97%E5%85%B8%E7%BF%BB%E8%AF%91/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="加锁和释放锁的原理Monitorenter和Monitorexit指令，会让对象在执行，使其锁计数器加1或者减1。每一个对象在同一时间只与一个monitor(锁)相关联，而一个monitor在同一时间只能被一个线程获得，一个对象在尝试获得与这个对象相关联的Monitor锁的所有权的时候，monitorenter指令会发生如下3中情况之一：  monitor计数器为0，意味着目前还没有被获得，那这个">
+<meta property="og:description" content="当我们在Java应用程序中需要对字典属性进行转换返回给前端时，如何简单、方便、并且优雅的处理是一个重要问题。在本文中，我们将介绍如何使用Java中的序列化机制来优雅地实现字典值的翻译，从而简化开发。 什么是序列化在Java中，序列化是将对象转换为字节流的过程，可以将这些字节流保存到文件中或通过网络进行传输。反序列化是将字节流转换为原始对象的过程。通过序列化和反序列化，我们可以在不同的应用程序之间传">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="http://img.litongxue.icu/schronized.jpg">
-<meta property="article:published_time" content="2021-08-10T01:16:58.000Z">
-<meta property="article:modified_time" content="2021-10-19T15:16:08.354Z">
+<meta property="article:published_time" content="2023-03-23T01:14:28.000Z">
+<meta property="article:modified_time" content="2023-03-24T17:35:17.516Z">
 <meta property="article:author" content="John Doe">
-<meta property="article:tag" content="Synchronized">
+<meta property="article:tag" content="序列化">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://img.litongxue.icu/schronized.jpg">
   
     <link rel="alternative" href="/atom.xml" title="Hexo" type="application/atom+xml">
   
@@ -151,92 +149,58 @@
             <canvas data-colors="#eaeaea" data-sectionHeight="100" data-contentId="js-content" id="myCanvas1" class="anm-canvas"></canvas>
           </div>
           <div id="js-content" class="content-ll">
-            <article id="post-2021-08-10-Synchronized原理分析" class="article article-type-post " itemscope itemprop="blogPost">
+            <article id="post-2023-03-23-优雅的实现字典翻译" class="article article-type-post " itemscope itemprop="blogPost">
   <div class="article-inner">
     
       <header class="article-header">
         
   
     <h1 class="article-title" itemprop="name">
-      Synchronized原理分析
+      优雅的实现字典翻译
     </h1>
   
 
         
-        <a href="/2021/08/10/2021-08-10-Synchronized%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90/" class="archive-article-date">
-  	<time datetime="2021-08-10T01:16:58.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2021-08-10</time>
+        <a href="/2023/03/23/2023-03-23-%E4%BC%98%E9%9B%85%E7%9A%84%E5%AE%9E%E7%8E%B0%E5%AD%97%E5%85%B8%E7%BF%BB%E8%AF%91/" class="archive-article-date">
+  	<time datetime="2023-03-23T01:14:28.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2023-03-23</time>
 </a>
         
       </header>
 <!--      <div align="center" class="post-count">
-        字数：2.2k字 | 预计阅读时长：7分钟
+        字数：1.6k字 | 预计阅读时长：6分钟
       </div> -->
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h3 id="加锁和释放锁的原理"><a href="#加锁和释放锁的原理" class="headerlink" title="加锁和释放锁的原理"></a>加锁和释放锁的原理</h3><p><code>Monitorenter</code>和<code>Monitorexit</code>指令，会让对象在执行，使其锁计数器加1或者减1。每一个对象在同一时间只与一个monitor(锁)相关联，而一个monitor在同一时间只能被一个线程获得，一个对象在尝试获得与这个对象相关联的Monitor锁的所有权的时候，monitorenter指令会发生如下3中情况之一：</p>
-<ul>
-<li>monitor计数器为0，意味着目前还没有被获得，那这个线程就会立刻获得然后把锁计数器+1，一旦+1，别的线程再想获取，就需要等待</li>
-<li>如果这个monitor已经拿到了这个锁的所有权，又重入了这把锁，那锁计数器就会累加，变成2，并且随着重入的次数，会一直累加</li>
-<li>这把锁已经被别的线程获取了，等待锁释放</li>
-</ul>
-<p><code>monitorexit指令</code>：释放对于monitor的所有权，释放过程很简单，就是讲monitor的计数器减1，如果减完以后，计数器不是0，则代表刚才是重入进来的，当前线程还继续持有这把锁的所有权，如果计数器变成0，则代表当前线程不再拥有该monitor的所有权，即释放锁。</p>
-<p><img src="http://img.litongxue.icu/schronized.jpg" alt="java-thread-x-key-schronized-2"></p>
-<p>该图可以看出，任意线程对Object的访问，首先要获得Object的监视器，如果获取失败，该线程就进入同步状态，线程状态变为BLOCKED，当Object的监视器占有者释放后，在同步队列中得线程就会有机会重新获取该监视器。</p>
-<span id="more"></span>
+        <p>当我们在Java应用程序中需要对字典属性进行转换返回给前端时，如何简单、方便、并且<strong>优雅</strong>的处理是一个重要问题。在本文中，我们将介绍如何使用Java中的序列化机制来优雅地实现字典值的翻译，从而简化开发。</p>
+<h2 id="什么是序列化"><a href="#什么是序列化" class="headerlink" title="什么是序列化"></a>什么是序列化</h2><p>在Java中，序列化是将对象转换为字节流的过程，可以将这些字节流保存到文件中或通过网络进行传输。反序列化是将字节流转换为原始对象的过程。通过序列化和反序列化，我们可以在不同的应用程序之间传递对象，也可以将对象保存到文件中以便以后使用。</p>
+<h2 id="使用序列化实现字典值的翻译"><a href="#使用序列化实现字典值的翻译" class="headerlink" title="使用序列化实现字典值的翻译"></a>使用序列化实现字典值的翻译</h2><p>在Java中，我们可以使用序列化机制来实现编码与其对应的含义的对应关系。具体步骤如下：</p>
+<ol>
+<li><p>定义一个字典注解与，例如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Target(&#123;ElementType.FIELD&#125;)</span></span><br><span class="line"><span class="meta">@Retention(RetentionPolicy.RUNTIME)</span></span><br><span class="line"><span class="meta">@JacksonAnnotationsInside</span></span><br><span class="line"><span class="meta">@JsonSerialize(using = DictSerializer.class)</span></span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> Dict &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 字典类型</span></span><br><span class="line"><span class="comment">     * 比如在描述学生的时候，1代表小学生 2代表初中生 3代表高中生 4代表大学生</span></span><br><span class="line"><span class="comment">     * 同样在描述老师的时候，1代表语文老师 2代表数学老师 3代表英语老师 4代表体育老师</span></span><br><span class="line"><span class="comment">     * 同样的数值在不同类型下，代表含义不同，所以需要指定字典的类型</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    String <span class="title function_">dic</span><span class="params">()</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>自定义注解结合继承JsonSerialize实现ContextualSerializer，实现返回结果转译：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Slf4j</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">DictSerializer</span> <span class="keyword">extends</span> <span class="title class_">StdSerializer</span>&lt;Object&gt; <span class="keyword">implements</span> <span class="title class_">ContextualSerializer</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">transient</span> String dictCode;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> JsonSerializer&lt;?&gt; createContextual(SerializerProvider prov, BeanProperty beanProperty)&#123;</span><br><span class="line">        <span class="type">Dict</span> <span class="variable">dict</span> <span class="operator">=</span> beanProperty.getAnnotation(Dict.class);</span><br><span class="line">        <span class="keyword">return</span> createContextual(dict.dic());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> JsonSerializer&lt;?&gt; createContextual(String dicCode) &#123;</span><br><span class="line">        <span class="type">DictSerializer</span> <span class="variable">serializer</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">DictSerializer</span>();</span><br><span class="line">        serializer.setDictCode(dicCode);</span><br><span class="line">        <span class="keyword">return</span> serializer;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">serialize</span><span class="params">(Object value, JsonGenerator gen, SerializerProvider provider)</span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="type">String</span> <span class="variable">dictCode</span> <span class="operator">=</span> getDictCode();</span><br><span class="line">        <span class="keyword">if</span> (StrUtil.isBlank(dictCode)) &#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (Objects.isNull(value)) &#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">        		<span class="comment">// 因为序列化是每个对象都需要进行序列话操作，这里为了减少网络IO，使用了 guava 的本地缓存（代码在下面）</span></span><br><span class="line">            Map&lt;String, String&gt; dictMap = DictionaryConstants.DICTIONARY_CACHE.get(dictCode);</span><br><span class="line">            <span class="keyword">if</span> (dictMap.containsKey(<span class="string">&quot;nullValue&quot;</span>)) &#123;</span><br><span class="line">              	<span class="comment">// 当本地缓存中不存在该类型的字典时，就调用查询方法，并且放入到本地缓存中（代码在下面）</span></span><br><span class="line">                dictMap = translateDictValue(dictCode);</span><br><span class="line">                DictionaryConstants.DICTIONARY_CACHE.put(dictCode, dictMap);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">// 通过数据字典类型和value获取name</span></span><br><span class="line">            <span class="type">String</span> <span class="variable">label</span> <span class="operator">=</span> dictMap.get(value.toString());</span><br><span class="line">            gen.writeObject(value);</span><br><span class="line">            <span class="comment">// 在需要转换的字段上添加@Dict注解，注明需要引用的code，后端会在返回值中增加filedName_dictText的key，前端只需要取对应的 filedName_dictText 就可以直接使用</span></span><br><span class="line">            gen.writeFieldName(gen.getOutputContext().getCurrentName() + DictionaryConstants.DICT_TEXT_SUFFIX);</span><br><span class="line">            gen.writeObject(label);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            log.error(<span class="string">&quot;错误信息:&#123;&#125;&quot;</span>, e.getMessage(), e);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> String <span class="title function_">getDictCode</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> dictCode;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">setDictCode</span><span class="params">(String dictCode)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.dictCode = dictCode;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">protected</span> <span class="title function_">DictSerializer</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="built_in">super</span>(Object.class);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>将同类型的字典编码和对应的含义保存到一个Map中，例如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> Map&lt;String, String&gt; <span class="title function_">translateDictValue</span><span class="params">(String code)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (StrUtil.isBlank(code)) &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">  	<span class="comment">// Map&lt;String, String&gt; map = new HashMap&lt;&gt;();</span></span><br><span class="line">    <span class="comment">// map.put(&quot;1&quot;, &quot;小学生&quot;);</span></span><br><span class="line">    <span class="comment">// map.put(&quot;2&quot;, &quot;初中生&quot;);</span></span><br><span class="line">    <span class="comment">// map.put(&quot;3&quot;, &quot;高中生&quot;);</span></span><br><span class="line">    <span class="comment">// map.put(&quot;4&quot;, &quot;大学生&quot;);</span></span><br><span class="line">  </span><br><span class="line">		<span class="comment">// 因为我们公司采用微服务，然后字典模块单独拆分成一个服务，所以这里使用Feign方式调用</span></span><br><span class="line">    <span class="type">DictionaryFeignClient</span> <span class="variable">dictionaryFeign</span> <span class="operator">=</span> SpringUtil.getBean(DictionaryFeignClient.class);</span><br><span class="line">  	<span class="keyword">return</span> dictionaryFeign.dictionary(code);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>因为序列化是需要每个对象都进行序列话操作，如果返回的是集合的话，就会进行很多次序列化操作，此时就需要对相同类型的字典进行缓存，我这里使用了guava 的 LoadingCache 进行本地缓存（这里可能有人会说了，如果这个时候字典值对应的含义修改了，你这个缓存岂不是会导致数据不正确，首先字典功能一般是管理端进行增删改操作，而且字典一旦定好了是不会轻易修改的，如果你要硬杠，你赢了）。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">DictionaryConstants</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 字典翻译文本后缀</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">DICT_TEXT_SUFFIX</span> <span class="operator">=</span> <span class="string">&quot;_dictText&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> LoadingCache&lt;String, Map&lt;String, String&gt;&gt; DICTIONARY_CACHE = CacheBuilder.newBuilder()</span><br><span class="line">            .maximumSize(<span class="number">1000</span>)</span><br><span class="line">            .expireAfterWrite(<span class="number">30</span>, TimeUnit.SECONDS)</span><br><span class="line">            .expireAfterAccess(<span class="number">10</span>, TimeUnit.SECONDS)</span><br><span class="line">            .build(<span class="keyword">new</span> <span class="title class_">CacheLoader</span>&lt;String, Map&lt;String, String&gt;&gt;() &#123;</span><br><span class="line">                <span class="meta">@Override</span></span><br><span class="line">                <span class="keyword">public</span> Map&lt;String, String&gt; <span class="title function_">load</span><span class="params">(String key)</span> &#123;</span><br><span class="line">                    Map&lt;String, String&gt; map = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">                    map.put(<span class="string">&quot;nullValue&quot;</span>, <span class="string">&quot;nullValue&quot;</span>);</span><br><span class="line">                    <span class="keyword">return</span> map;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h3 id="锁的类型"><a href="#锁的类型" class="headerlink" title="锁的类型"></a>锁的类型</h3><p>在Java早期版本中，synchronized属于重量级锁，效率低下，因为操作系统实现线程之间的切换时需要从用户态转换到核心态，这个状态之间的转换需要相对比较长的时间，时间成本相对较高，在Java SE 1.6里Synchronied同步锁，一共有四种状态：<code>无锁</code>、<code>偏向锁</code>、<code>轻量级所</code>、<code>重量级锁</code>，它会随着竞争情况逐渐升级。锁可以升级但是不可以降级，目的是为了提供获取锁和释放锁的效率。</p>
-<p>锁膨胀（升级）方向： 无锁 → 偏向锁 → 轻量级锁 → 重量级锁 (此过程是不可逆的)</p>
-<h3 id="偏向锁"><a href="#偏向锁" class="headerlink" title="偏向锁"></a>偏向锁</h3><p>当线程1访问代码块并获取锁对象时，会在java对象头和栈帧中记录偏向的锁的threadID，因为偏向锁不会主动释放锁，因此以后线程1再次获取锁的时候，需要比较当前线程的threadID和Java对象头中的threadID是否一致，如果一致（还是线程1获取锁对象），则无需使用CAS来加锁、解锁；如果不一致（其他线程，如线程2要竞争锁对象，而偏向锁不会主动释放因此还是存储的线程1的threadID），那么需要查看Java对象头中记录的线程1是否存活，如果没有存活，那么锁对象被重置为无锁状态，其它线程（线程2）可以竞争将其设置为偏向锁；如果存活，那么立刻查找该线程（线程1）的栈帧信息，如果还是需要继续持有这个锁对象，那么暂停当前线程1，撤销偏向锁，升级为轻量级锁，如果线程1 不再使用该锁对象，那么将锁对象状态设为无锁状态，重新偏向新的线程。</p>
-<h4 id="偏向锁的撤销"><a href="#偏向锁的撤销" class="headerlink" title="偏向锁的撤销"></a>偏向锁的撤销</h4><p> 偏向锁使用了一种等待竞争出现才会释放锁的机制。所以当其他线程尝试获取偏向锁时，持有偏向锁的线程才会释放锁。但是偏向锁的撤销需要等到全局安全点(就是当前线程没有正在执行的字节码)。它会首先暂停拥有偏向锁的线程，让你后检查持有偏向锁的线程是否活着。如果线程不处于活动状态，直接将对象头设置为无锁状态。如果线程活着，JVM会遍历栈帧中的锁记录，栈帧中的锁记录和对象头要么偏向于其他线程，要么恢复到无锁状态或者标记对象不适合作为偏向锁。</p>
-<h3 id="轻量级锁"><a href="#轻量级锁" class="headerlink" title="轻量级锁"></a><strong>轻量级锁</strong></h3><p>线程1获取轻量级锁时会先把锁对象的对象头MarkWord复制一份到线程1的栈帧中创建的用于存储锁记录的空间（称为DisplacedMarkWord），然后使用CAS把对象头中的内容替换为线程1存储的锁记录（DisplacedMarkWord）的地址；</p>
-<p>如果在线程1复制对象头的同时（在线程1CAS之前），线程2也准备获取锁，复制了对象头到线程2的锁记录空间中，但是在线程2CAS的时候，发现线程1已经把对象头换了，线程2的CAS失败，那么线程2就尝试使用自旋锁来等待线程1释放锁。 自旋锁简单来说就是让线程2在循环中不断CAS</p>
-<p>但是如果自旋的时间太长也不行，因为自旋是要消耗CPU的，因此自旋的次数是有限制的，比如10次或者100次，如果自旋次数到了线程1还没有释放锁，或者线程1还在执行，线程2还在自旋等待，这时又有一个线程3过来竞争这个锁对象，那么这个时候轻量级锁就会膨胀为重量级锁。重量级锁把除了拥有锁的线程都阻塞，防止CPU空转。</p>
-<table>
-<thead>
-<tr>
-<th>锁</th>
-<th>优点</th>
-<th>缺点</th>
-<th>使用场景</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>偏向锁</td>
-<td>加锁和解锁不需要CAS操作，没有额外的性能消耗，和执行非同步方法相比仅存在纳秒级的差距</td>
-<td>如果线程间存在锁竞争，会带来额外的锁撤销的消耗</td>
-<td>适用于只有一个线程访问同步快的场景</td>
-</tr>
-<tr>
-<td>轻量级锁</td>
-<td>竞争的线程不会阻塞，提高了响应速度</td>
-<td>如线程成始终得不到锁竞争的线程，使用自旋会消耗CPU性能</td>
-<td>追求响应时间，同步快执行速度非常快</td>
-</tr>
-<tr>
-<td>重量级锁</td>
-<td>线程竞争不适用自旋，不会消耗CPU</td>
-<td>线程阻塞，响应时间缓慢，在多线程下，频繁的获取释放锁，会带来巨大的性能消耗</td>
-<td>追求吞吐量，同步快执行速度较长</td>
-</tr>
-</tbody></table>
-<h3 id="synchronized的缺陷"><a href="#synchronized的缺陷" class="headerlink" title="synchronized的缺陷"></a>synchronized的缺陷</h3><ul>
-<li><code>效率低</code>：锁的释放情况少，只有代码执行完毕或者异常结束才会释放锁；试图获取锁的时候不能设定超时，不能中断一个正在使用锁的线程，相对而言，Lock可以中断和设置超时</li>
-<li><code>不够灵活</code>：加锁和释放的时机单一，每个锁仅有一个单一的条件(某个对象)，相对而言，读写锁更加灵活</li>
-<li><code>无法知道是否成功获得锁</code>，相对而言，Lock可以拿到状态，如果成功获取锁，….，如果获取失败，…..</li>
-</ul>
-<h3 id="Lock解决相应问题"><a href="#Lock解决相应问题" class="headerlink" title="Lock解决相应问题"></a>Lock解决相应问题</h3><p>Lock类这里不做过多解释，主要看里面的4个方法:</p>
+<p>这里额外补充一个小知识:</p>
 <ul>
-<li><code>lock()</code>: 加锁</li>
-<li><code>unlock()</code>: 解锁</li>
-<li><code>tryLock()</code>: 尝试获取锁，返回一个boolean值</li>
-<li><code>tryLock(long,TimeUtil)</code>: 尝试获取锁，可以设置超时</li>
+<li>expireAfterWrite和expireAfterAccess都是Google Guava缓存库中的缓存过期策略。</li>
+<li>expireAfterWrite表示缓存项在指定时间后过期，无论缓存项是否被访问过。例如，如果我们将缓存项的expireAfterWrite设置为10分钟，则缓存项在被添加到缓存中10分钟后过期，无论它是否被访问过。</li>
+<li>这两种过期策略可以单独或组合使用，以实现更灵活的缓存策略。例如，我们可以将缓存项的expireAfterWrite设置为10分钟，同时将expireAfterAccess设置为5分钟，这样缓存项将在10分钟后过期，或者在最近5分钟内没有被访问时过期，以先到者为准。</li>
+<li>使用expireAfterWrite和expireAfterAccess可以避免缓存中的数据过期时间过长或过短，从而提高缓存的效率和可靠性。</li>
 </ul>
-<p>Synchronized只有锁只与一个条件(是否获取锁)相关联，不灵活，后来<code>Condition与Lock的结合</code>解决了这个问题。</p>
-<p>多线程竞争一个锁时，其余未得到锁的线程只能不停的尝试获得锁，而不能中断。高并发的情况下会导致性能下降。ReentrantLock的lockInterruptibly()方法可以优先考虑响应中断。 一个线程等待时间过长，它可以中断自己，然后ReentrantLock响应这个中断，不再让这个线程继续等待。有了这个机制，使用ReentrantLock时就不会像synchronized那样产生死锁了。</p>
-<p>synchronized实际上是非公平的，新来的线程有可能立即获得监视器，而在等待区中等候已久的线程可能再次等待，不过这种抢占的方式可以预防饥饿。</p>
-<p>公平锁：多个线程申请锁时是相对公平的，在申请锁时如果有其它线程已经占用了锁，则进行排队等待处理。</p>
-<p>非公平锁：多个线程申请锁时相对不公平，与公平锁相同，都会存在排队的情况，但对于一个新线程需要获取锁时不是先排队等待，而是先尝试获取锁，不成功时再进入队列排队等待。</p>
+</li>
+<li><p>相比于使用 aop 切面的方式，使用序列化的方式能更好的进行字典的翻译（因为 aop 方式很难处理对象中的属性的属性），例如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Company</span> &#123;</span><br><span class="line">  <span class="keyword">private</span> List&lt;Staff&gt; staffs;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Staff</span> &#123;</span><br><span class="line">  <span class="keyword">private</span> Integer age;</span><br><span class="line">  <span class="keyword">private</span> String name;</span><br><span class="line">  <span class="meta">@Dic(dic = &quot;position&quot;)</span></span><br><span class="line">  <span class="keyword">private</span> String position;</span><br><span class="line">  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在这种场景中，如果返回的是 Company 集合，使用 aop 切面方式就很难达到（开发难度与开发成本）与序列话方式同样的效果。</p>
+</li>
+</ol>
+<p>通过以上步骤，我们可以使用Java中的序列化机制来优雅地实现字典编码与其对应的含义的对应关系，从而简化编码数据的管理和维护。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>在本文中，我们介绍了如何使用Java中的序列化机制来实现编码与其对应的含义的对应关系，从而简化编码数据的管理和维护。通过序列化和反序列化，我们可以高效地传递和保存对象，提高应用程序的效率和可维护性。</p>
 
       
 
@@ -281,7 +245,7 @@
 		<ul class="article-tag-list">
 			 
         		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">Synchronized</a>
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color4">序列化</a>
         		</li>
       		
 		</ul>
@@ -337,7 +301,7 @@
     <a class="close js-modal-close" href="javascript:;"><i class="icon icon-close"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//pan.baidu.com/share/qrcode?url=http://example.com/2021/08/10/2021-08-10-Synchronized%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90/" alt="微信分享二维码">
+      <img src="//pan.baidu.com/share/qrcode?url=http://example.com/2023/03/23/2023-03-23-%E4%BC%98%E9%9B%85%E7%9A%84%E5%AE%9E%E7%8E%B0%E5%AD%97%E5%85%B8%E7%BF%BB%E8%AF%91/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -351,18 +315,9 @@
   
 <nav id="article-nav">
   
-    <a href="/2021/08/20/2021-08-20-%E4%BB%80%E4%B9%88%E6%98%AF%E9%94%81/" id="article-nav-newer" class="article-nav-link-wrap">
-      <i class="icon-circle-left"></i>
-      <div class="article-nav-title">
-        
-          什么是锁
-        
-      </div>
-    </a>
   
-  
-    <a href="/2021/08/01/2021-08-01-%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B9%8BZK%E9%94%81/" id="article-nav-older" class="article-nav-link-wrap">
-      <div class="article-nav-title">分布式锁之ZK锁</div>
+    <a href="/2021/08/31/2021-08-31-%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">浅谈分布式锁</div>
       <i class="icon-circle-right"></i>
     </a>
   
