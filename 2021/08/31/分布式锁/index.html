@@ -16,7 +16,7 @@
 <meta property="og:description" content="分布式锁">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2021-08-31T12:32:30.000Z">
-<meta property="article:modified_time" content="2023-03-24T18:18:39.499Z">
+<meta property="article:modified_time" content="2023-03-24T18:21:48.926Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="分布式锁">
 <meta name="twitter:card" content="summary">
@@ -167,7 +167,7 @@
         
       </header>
 <!--      <div align="center" class="post-count">
-        字数：980字 | 预计阅读时长：3分钟
+        字数：970字 | 预计阅读时长：3分钟
       </div> -->
     
     <div class="article-entry" itemprop="articleBody">
@@ -180,7 +180,7 @@
 <p>所以，很多系统在设计之初就要对这三者做出取舍。在互联网领域的绝大多数的场景中，都需要牺牲强一致性来换取系统的高可用性，系统往往只需要保证“最终一致性”，只要这个最终时间是在用户可以接受的范围内即可。</p>
 <span id="more"></span>
 
-<h3 id="什么是分布式锁？"><a href="#什么是分布式锁？" class="headerlink" title="什么是分布式锁？"></a>什么是分布式锁？</h3><p>在讲分布式锁之前先了解一下<a href="#">Post not found: 2021-08-20-什么是锁 什么是锁</a></p>
+<h3 id="什么是分布式锁？"><a href="#什么是分布式锁？" class="headerlink" title="什么是分布式锁？"></a>什么是分布式锁？</h3><p>在讲分布式锁之前先了解一下<a href="/2021/08/20/%E4%BB%80%E4%B9%88%E6%98%AF%E9%94%81/" title="什么是锁">什么是锁</a></p>
 <p>分布式锁，是单机锁的一种扩展，主要是为了锁住分布式系统中不同机器代码的物理块或逻辑块。以此保证不同机器之间的逻辑一致性。在集群等多服务器中经常使用到同步处理一下业务，这是普通的事务是满足不了业务需求，需要分布式锁。</p>
 <p>分布式锁是控制分布式系统或不同系统之间共同访问共享资源的一种锁实现，如果不同的系统或同一个系统的不同主机之间共享了某个资源时，往往需要互斥来防止彼此干扰来保证一致性。</p>
 <p><font color=red><strong>其实无论是单机锁或者是分布式锁，目的就是确保在多个线程并发时，只有一个线程在同一刻操作这个业务或者说方法、变量。</strong></font></p>
