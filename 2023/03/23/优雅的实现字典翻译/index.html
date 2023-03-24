@@ -6,22 +6,20 @@
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge" >
   <link rel="dns-prefetch" href="http://example.com">
-  <title>分布式锁之ZK锁 | Hexo</title>
+  <title>优雅的实现字典翻译 | Hexo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="前言在介绍 Zookeeper(下文用 ZK 代替)实现分布式锁的机制之前，先粗略介绍一下 ZK 是什么：  ZooKeeper 是 Apache 软件基金会的一个软件项目，它为大型分布式计算提供开源的分布式配置服务、同步服务和命名注册。 ZooKeeper 的架构通过冗余服务实现高可用性。 Zookeeper 的设计目标是将那些复杂且容易出错的分布式一致性服务封装起来，构成一个高效可靠的原语集，">
+  <meta name="description" content="当我们在Java应用程序中需要对字典属性进行转换返回给前端时，如何简单、方便、并且优雅的处理是一个重要问题。在本文中，我们将介绍如何使用Java中的序列化机制来优雅地实现字典值的翻译，从而简化开发。 什么是序列化在Java中，序列化是将对象转换为字节流的过程，可以将这些字节流保存到文件中或通过网络进行传输。反序列化是将字节流转换为原始对象的过程。通过序列化和反序列化，我们可以在不同的应用程序之间传">
 <meta property="og:type" content="article">
-<meta property="og:title" content="分布式锁之ZK锁">
-<meta property="og:url" content="http://example.com/2021/08/01/2021-08-01-%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B9%8BZK%E9%94%81/index.html">
+<meta property="og:title" content="优雅的实现字典翻译">
+<meta property="og:url" content="http://example.com/2023/03/23/%E4%BC%98%E9%9B%85%E7%9A%84%E5%AE%9E%E7%8E%B0%E5%AD%97%E5%85%B8%E7%BF%BB%E8%AF%91/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="前言在介绍 Zookeeper(下文用 ZK 代替)实现分布式锁的机制之前，先粗略介绍一下 ZK 是什么：  ZooKeeper 是 Apache 软件基金会的一个软件项目，它为大型分布式计算提供开源的分布式配置服务、同步服务和命名注册。 ZooKeeper 的架构通过冗余服务实现高可用性。 Zookeeper 的设计目标是将那些复杂且容易出错的分布式一致性服务封装起来，构成一个高效可靠的原语集，">
+<meta property="og:description" content="当我们在Java应用程序中需要对字典属性进行转换返回给前端时，如何简单、方便、并且优雅的处理是一个重要问题。在本文中，我们将介绍如何使用Java中的序列化机制来优雅地实现字典值的翻译，从而简化开发。 什么是序列化在Java中，序列化是将对象转换为字节流的过程，可以将这些字节流保存到文件中或通过网络进行传输。反序列化是将字节流转换为原始对象的过程。通过序列化和反序列化，我们可以在不同的应用程序之间传">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="http://img.litongxue.icu/1151631613061_.pic_hd.jpg">
-<meta property="article:published_time" content="2021-08-01T07:10:22.000Z">
-<meta property="article:modified_time" content="2021-10-19T15:15:12.487Z">
+<meta property="article:published_time" content="2023-03-23T01:14:28.000Z">
+<meta property="article:modified_time" content="2023-03-24T17:35:17.516Z">
 <meta property="article:author" content="John Doe">
-<meta property="article:tag" content="分布式锁">
+<meta property="article:tag" content="序列化">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://img.litongxue.icu/1151631613061_.pic_hd.jpg">
   
     <link rel="alternative" href="/atom.xml" title="Hexo" type="application/atom+xml">
   
@@ -151,113 +149,58 @@
             <canvas data-colors="#eaeaea" data-sectionHeight="100" data-contentId="js-content" id="myCanvas1" class="anm-canvas"></canvas>
           </div>
           <div id="js-content" class="content-ll">
-            <article id="post-2021-08-01-分布式锁之ZK锁" class="article article-type-post " itemscope itemprop="blogPost">
+            <article id="post-优雅的实现字典翻译" class="article article-type-post " itemscope itemprop="blogPost">
   <div class="article-inner">
     
       <header class="article-header">
         
   
     <h1 class="article-title" itemprop="name">
-      分布式锁之ZK锁
+      优雅的实现字典翻译
     </h1>
   
 
         
-        <a href="/2021/08/01/2021-08-01-%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B9%8BZK%E9%94%81/" class="archive-article-date">
-  	<time datetime="2021-08-01T07:10:22.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2021-08-01</time>
+        <a href="/2023/03/23/%E4%BC%98%E9%9B%85%E7%9A%84%E5%AE%9E%E7%8E%B0%E5%AD%97%E5%85%B8%E7%BF%BB%E8%AF%91/" class="archive-article-date">
+  	<time datetime="2023-03-23T01:14:28.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2023-03-23</time>
 </a>
         
       </header>
 <!--      <div align="center" class="post-count">
-        字数：1.9k字 | 预计阅读时长：6分钟
+        字数：1.6k字 | 预计阅读时长：6分钟
       </div> -->
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>在介绍 Zookeeper(下文用 ZK 代替)实现分布式锁的机制之前，先粗略介绍一下 ZK 是什么：</p>
-<blockquote>
-<p>ZooKeeper 是 Apache 软件基金会的一个软件项目，它为大型分布式计算提供开源的分布式配置服务、同步服务和命名注册。</p>
-<p>ZooKeeper 的架构通过冗余服务实现高可用性。</p>
-<p>Zookeeper 的设计目标是将那些复杂且容易出错的分布式一致性服务封装起来，构成一个高效可靠的原语集，并以一系列简单易用的接口提供给用户使用。</p>
-<p>一个典型的分布式数据一致性的解决方案，分布式应用程序可以基于它实现诸如数据发布/订阅、负载均衡、命名服务、分布式协调/通知、集群管理、Master 选举、分布式锁和分布式队列等功能。</p>
-</blockquote>
-<p><strong>ZK的一些重要特性：</strong></p>
+        <p>当我们在Java应用程序中需要对字典属性进行转换返回给前端时，如何简单、方便、并且<strong>优雅</strong>的处理是一个重要问题。在本文中，我们将介绍如何使用Java中的序列化机制来优雅地实现字典值的翻译，从而简化开发。</p>
+<h2 id="什么是序列化"><a href="#什么是序列化" class="headerlink" title="什么是序列化"></a>什么是序列化</h2><p>在Java中，序列化是将对象转换为字节流的过程，可以将这些字节流保存到文件中或通过网络进行传输。反序列化是将字节流转换为原始对象的过程。通过序列化和反序列化，我们可以在不同的应用程序之间传递对象，也可以将对象保存到文件中以便以后使用。</p>
+<h2 id="使用序列化实现字典值的翻译"><a href="#使用序列化实现字典值的翻译" class="headerlink" title="使用序列化实现字典值的翻译"></a>使用序列化实现字典值的翻译</h2><p>在Java中，我们可以使用序列化机制来实现编码与其对应的含义的对应关系。具体步骤如下：</p>
 <ol>
-<li>一个leader，多个follower组成的集群；</li>
-<li>全局数据一致：每个server保存一份相同的数据副本，client无论连接到哪个server，数据都是一致的</li>
-<li>分布式读写</li>
-<li>更新请求顺序进行，来自同一个client的更新请求按其发送顺序依次执行</li>
-<li>数据更新原子性，一次数据更新要么成功（半数以上节点成功），要么失败</li>
-<li>实时性（最终一致性），在一定时间范围内，client能读到最新数据</li>
-<li>监听机制</li>
-</ol>
-<p><strong>ZK的数据模型</strong></p>
-<p><img src="http://img.litongxue.icu/1151631613061_.pic_hd.jpg"></p>
-<p>ZooKeeper的视图数据结构，很像Unix文件系统，也是树状的，这样可以确定每个路径都是唯一的。zookeeper的节点统一叫做「znode」，它是可以通过「路径来标识」。</p>
-<p><strong>znode的4种类型</strong></p>
-<p>根据节点的生命周期，znode可以分为4种类型，分别是：</p>
-<table>
-<thead>
-<tr>
-<th>类型</th>
-<th>描述</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>持久节点(PERSISTENT)</td>
-<td>这类节点被创建后，就会一直存在于Zk服务器上。直到手动删除。</td>
-</tr>
-<tr>
-<td>持久顺序节点(PERSISTENT_SEQUENTIAL)</td>
-<td>它的基本特性同持久节点，不同在于增加了顺序性。父节点会维护一个自增整性数字，用于子节点的创建的先后顺序。</td>
-</tr>
-<tr>
-<td>临时节点(EPHEMERAL)</td>
-<td>临时节点的生命周期与客户端的会话绑定，一旦客户端会话失效(非TCP连接断开)，那么这个节点就会被自动清理掉。zk规定临时节点只能作为叶子节点。</td>
-</tr>
-<tr>
-<td>临时顺序节点(EPHEMERAL_SEQUENTIAL)</td>
-<td>基本特性同临时节点，添加了顺序的特性。</td>
-</tr>
-</tbody></table>
-<p><strong>事件监听机制（Watcher）</strong></p>
+<li><p>定义一个字典注解与，例如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Target(&#123;ElementType.FIELD&#125;)</span></span><br><span class="line"><span class="meta">@Retention(RetentionPolicy.RUNTIME)</span></span><br><span class="line"><span class="meta">@JacksonAnnotationsInside</span></span><br><span class="line"><span class="meta">@JsonSerialize(using = DictSerializer.class)</span></span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> Dict &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 字典类型</span></span><br><span class="line"><span class="comment">     * 比如在描述学生的时候，1代表小学生 2代表初中生 3代表高中生 4代表大学生</span></span><br><span class="line"><span class="comment">     * 同样在描述老师的时候，1代表语文老师 2代表数学老师 3代表英语老师 4代表体育老师</span></span><br><span class="line"><span class="comment">     * 同样的数值在不同类型下，代表含义不同，所以需要指定字典的类型</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    String <span class="title function_">dic</span><span class="params">()</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>自定义注解结合继承JsonSerialize实现ContextualSerializer，实现返回结果转译：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Slf4j</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">DictSerializer</span> <span class="keyword">extends</span> <span class="title class_">StdSerializer</span>&lt;Object&gt; <span class="keyword">implements</span> <span class="title class_">ContextualSerializer</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">transient</span> String dictCode;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> JsonSerializer&lt;?&gt; createContextual(SerializerProvider prov, BeanProperty beanProperty)&#123;</span><br><span class="line">        <span class="type">Dict</span> <span class="variable">dict</span> <span class="operator">=</span> beanProperty.getAnnotation(Dict.class);</span><br><span class="line">        <span class="keyword">return</span> createContextual(dict.dic());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> JsonSerializer&lt;?&gt; createContextual(String dicCode) &#123;</span><br><span class="line">        <span class="type">DictSerializer</span> <span class="variable">serializer</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">DictSerializer</span>();</span><br><span class="line">        serializer.setDictCode(dicCode);</span><br><span class="line">        <span class="keyword">return</span> serializer;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">serialize</span><span class="params">(Object value, JsonGenerator gen, SerializerProvider provider)</span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="type">String</span> <span class="variable">dictCode</span> <span class="operator">=</span> getDictCode();</span><br><span class="line">        <span class="keyword">if</span> (StrUtil.isBlank(dictCode)) &#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (Objects.isNull(value)) &#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">        		<span class="comment">// 因为序列化是每个对象都需要进行序列话操作，这里为了减少网络IO，使用了 guava 的本地缓存（代码在下面）</span></span><br><span class="line">            Map&lt;String, String&gt; dictMap = DictionaryConstants.DICTIONARY_CACHE.get(dictCode);</span><br><span class="line">            <span class="keyword">if</span> (dictMap.containsKey(<span class="string">&quot;nullValue&quot;</span>)) &#123;</span><br><span class="line">              	<span class="comment">// 当本地缓存中不存在该类型的字典时，就调用查询方法，并且放入到本地缓存中（代码在下面）</span></span><br><span class="line">                dictMap = translateDictValue(dictCode);</span><br><span class="line">                DictionaryConstants.DICTIONARY_CACHE.put(dictCode, dictMap);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">// 通过数据字典类型和value获取name</span></span><br><span class="line">            <span class="type">String</span> <span class="variable">label</span> <span class="operator">=</span> dictMap.get(value.toString());</span><br><span class="line">            gen.writeObject(value);</span><br><span class="line">            <span class="comment">// 在需要转换的字段上添加@Dict注解，注明需要引用的code，后端会在返回值中增加filedName_dictText的key，前端只需要取对应的 filedName_dictText 就可以直接使用</span></span><br><span class="line">            gen.writeFieldName(gen.getOutputContext().getCurrentName() + DictionaryConstants.DICT_TEXT_SUFFIX);</span><br><span class="line">            gen.writeObject(label);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            log.error(<span class="string">&quot;错误信息:&#123;&#125;&quot;</span>, e.getMessage(), e);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> String <span class="title function_">getDictCode</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> dictCode;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">setDictCode</span><span class="params">(String dictCode)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.dictCode = dictCode;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">protected</span> <span class="title function_">DictSerializer</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="built_in">super</span>(Object.class);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>将同类型的字典编码和对应的含义保存到一个Map中，例如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> Map&lt;String, String&gt; <span class="title function_">translateDictValue</span><span class="params">(String code)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (StrUtil.isBlank(code)) &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">  	<span class="comment">// Map&lt;String, String&gt; map = new HashMap&lt;&gt;();</span></span><br><span class="line">    <span class="comment">// map.put(&quot;1&quot;, &quot;小学生&quot;);</span></span><br><span class="line">    <span class="comment">// map.put(&quot;2&quot;, &quot;初中生&quot;);</span></span><br><span class="line">    <span class="comment">// map.put(&quot;3&quot;, &quot;高中生&quot;);</span></span><br><span class="line">    <span class="comment">// map.put(&quot;4&quot;, &quot;大学生&quot;);</span></span><br><span class="line">  </span><br><span class="line">		<span class="comment">// 因为我们公司采用微服务，然后字典模块单独拆分成一个服务，所以这里使用Feign方式调用</span></span><br><span class="line">    <span class="type">DictionaryFeignClient</span> <span class="variable">dictionaryFeign</span> <span class="operator">=</span> SpringUtil.getBean(DictionaryFeignClient.class);</span><br><span class="line">  	<span class="keyword">return</span> dictionaryFeign.dictionary(code);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>因为序列化是需要每个对象都进行序列话操作，如果返回的是集合的话，就会进行很多次序列化操作，此时就需要对相同类型的字典进行缓存，我这里使用了guava 的 LoadingCache 进行本地缓存（这里可能有人会说了，如果这个时候字典值对应的含义修改了，你这个缓存岂不是会导致数据不正确，首先字典功能一般是管理端进行增删改操作，而且字典一旦定好了是不会轻易修改的，如果你要硬杠，你赢了）。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">DictionaryConstants</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 字典翻译文本后缀</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">DICT_TEXT_SUFFIX</span> <span class="operator">=</span> <span class="string">&quot;_dictText&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> LoadingCache&lt;String, Map&lt;String, String&gt;&gt; DICTIONARY_CACHE = CacheBuilder.newBuilder()</span><br><span class="line">            .maximumSize(<span class="number">1000</span>)</span><br><span class="line">            .expireAfterWrite(<span class="number">30</span>, TimeUnit.SECONDS)</span><br><span class="line">            .expireAfterAccess(<span class="number">10</span>, TimeUnit.SECONDS)</span><br><span class="line">            .build(<span class="keyword">new</span> <span class="title class_">CacheLoader</span>&lt;String, Map&lt;String, String&gt;&gt;() &#123;</span><br><span class="line">                <span class="meta">@Override</span></span><br><span class="line">                <span class="keyword">public</span> Map&lt;String, String&gt; <span class="title function_">load</span><span class="params">(String key)</span> &#123;</span><br><span class="line">                    Map&lt;String, String&gt; map = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">                    map.put(<span class="string">&quot;nullValue&quot;</span>, <span class="string">&quot;nullValue&quot;</span>);</span><br><span class="line">                    <span class="keyword">return</span> map;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里额外补充一个小知识:</p>
 <ul>
-<li>Zookeeper提供了数据的发布/订阅功能，多个订阅者可同时监听某一特定主题对象，当该主题对象的自身状态发生变化时(例如节点内容改变、节点下的子节点列表改变等)，会实时、主动通知所有订阅者。</li>
-<li>Zookeeper采用了Watcher机制实现数据的发布/订阅功能。该机制在被订阅对象发生变化时会异步通知客户端，因此客户端不必在Watcher注册后轮询阻塞，从而减轻了客户端压力</li>
-<li>watcher机制事件上与观察者模式类似，也可看作是一种观察者模式在分布式场景下的实现方式</li>
+<li>expireAfterWrite和expireAfterAccess都是Google Guava缓存库中的缓存过期策略。</li>
+<li>expireAfterWrite表示缓存项在指定时间后过期，无论缓存项是否被访问过。例如，如果我们将缓存项的expireAfterWrite设置为10分钟，则缓存项在被添加到缓存中10分钟后过期，无论它是否被访问过。</li>
+<li>这两种过期策略可以单独或组合使用，以实现更灵活的缓存策略。例如，我们可以将缓存项的expireAfterWrite设置为10分钟，同时将expireAfterAccess设置为5分钟，这样缓存项将在10分钟后过期，或者在最近5分钟内没有被访问时过期，以先到者为准。</li>
+<li>使用expireAfterWrite和expireAfterAccess可以避免缓存中的数据过期时间过长或过短，从而提高缓存的效率和可靠性。</li>
 </ul>
-<h3 id="实现锁原理与方式"><a href="#实现锁原理与方式" class="headerlink" title="实现锁原理与方式"></a>实现锁原理与方式</h3><p>基于ZooKeeper实现分布式锁的步骤如下：</p>
-<ol>
-<li>当第一个客户端（Client1）请求过来时，Zookeeper客户端会创建一个持久节点（/locks）；</li>
-<li>如果这个线程（客户端）想获取锁就在locks目录下创建临时顺序节点；</li>
-<li>接着，客户端Client1会查找locks下面的所有临时顺序子节点，判断自己的节点lock1是不是排序最小的那一个，如果是，则成功获得锁；</li>
-<li>如果又来一个线程B（客户端Client2）获取锁，它会在locks下再创建一个临时节点lock2</li>
-<li>线程B（客户端Client2）获取所有节点，判断自己是不是最小节点，如果不是最小节点，就会设置监听排序比自己靠前一位的节点，此时线程B属于抢锁失败进入等待状态；</li>
-<li>线程A处理完或出现故障（如果线程A出现故障，根据临时节点得特性，lock1是会自动删除），删除自己的节点，线程B监听到变更事件，判断自己是不是最小的节点，如果是则获得锁。</li>
-</ol>
-<p>两种实现原理：</p>
-<ol>
-<li><p><strong>利用临时节点：</strong></p>
-<p>zookeeper的临时节点有两个特性，一是节点名称不能重复，二是会随着客户端退出而销毁，因此直接将key作为节点名称，能够成功创建的客户端则获取成功，失败的客户端监听成功的节点的删除事件<br><strong>缺点</strong>：所有客户端监听同一个节点，但是同时只有一个节点的事件触发是有效的，造成资源的无效调度</p>
 </li>
-<li><p><strong>利用顺序临时节点：</strong></p>
-<p>zookeeper的顺序临时节点拥有临时节点的特性，同时，在一个父节点下创建创建的子临时顺序节点，会根据节点创建的先后顺序，用一个32位的数字作为后缀，我们可以用key创建一个根节点，然后每次申请锁的时候在其下创建顺序节点，接着获取根节点下所有的顺序节点并排序，获取顺序最小的节点，如果该节点的名称与当前添加的名称相同，则表示能够获取锁，否则监听根节点下面的处于当前节点之前的节点的删除事件，如果监听生效，则回到上一步重新判断顺序，直到获取锁。</p>
+<li><p>相比于使用 aop 切面的方式，使用序列化的方式能更好的进行字典的翻译（因为 aop 方式很难处理对象中的属性的属性），例如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Company</span> &#123;</span><br><span class="line">  <span class="keyword">private</span> List&lt;Staff&gt; staffs;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Staff</span> &#123;</span><br><span class="line">  <span class="keyword">private</span> Integer age;</span><br><span class="line">  <span class="keyword">private</span> String name;</span><br><span class="line">  <span class="meta">@Dic(dic = &quot;position&quot;)</span></span><br><span class="line">  <span class="keyword">private</span> String position;</span><br><span class="line">  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在这种场景中，如果返回的是 Company 集合，使用 aop 切面方式就很难达到（开发难度与开发成本）与序列话方式同样的效果。</p>
 </li>
 </ol>
-<h3 id="Curator-介绍"><a href="#Curator-介绍" class="headerlink" title="Curator 介绍"></a><strong>Curator 介绍</strong></h3><p>Curator 是一个 ZK 的开源客户端，也提供了分布式锁的实现。它的使用方式也比较简单：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">InterProcessMutex interProcessMutex = new InterProcessMutex(client,&quot;/anyLock&quot;); </span><br><span class="line">interProcessMutex.acquire(); </span><br><span class="line">interProcessMutex.release(); </span><br></pre></td></tr></table></figure>
-
-
-
-<p>其实现分布式锁的核心源码如下：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line">private boolean internalLockLoop(long startMillis, Long millisToWait, String ourPath) throws Exception </span><br><span class="line">&#123; </span><br><span class="line">    boolean  haveTheLock = false; </span><br><span class="line">    boolean  doDelete = false; </span><br><span class="line">    try &#123; </span><br><span class="line">        if ( revocable.get() != null ) &#123; </span><br><span class="line">            client.getData().usingWatcher(revocableWatcher).forPath(ourPath); </span><br><span class="line">        &#125; </span><br><span class="line"> </span><br><span class="line">        while ( (client.getState() == CuratorFrameworkState.STARTED) &amp;&amp; !haveTheLock ) &#123; </span><br><span class="line">            // 获取当前所有节点排序后的集合 </span><br><span class="line">            List&lt;String&gt;        children = getSortedChildren(); </span><br><span class="line">            // 获取当前节点的名称 </span><br><span class="line">            String              sequenceNodeName = ourPath.substring(basePath.length() + 1); // +1 to include the slash </span><br><span class="line">            // 判断当前节点是否是最小的节点 </span><br><span class="line">            PredicateResults    predicateResults = driver.getsTheLock(client, children, sequenceNodeName, maxLeases); </span><br><span class="line">            if ( predicateResults.getsTheLock() ) &#123; </span><br><span class="line">                // 获取到锁 </span><br><span class="line">                haveTheLock = true; </span><br><span class="line">            &#125; else &#123; </span><br><span class="line">                // 没获取到锁，对当前节点的上一个节点注册一个监听器 </span><br><span class="line">                String  previousSequencePath = basePath + &quot;/&quot; + predicateResults.getPathToWatch(); </span><br><span class="line">                synchronized(this)&#123; </span><br><span class="line">                    Stat stat = client.checkExists().usingWatcher(watcher).forPath(previousSequencePath); </span><br><span class="line">                    if ( stat != null )&#123; </span><br><span class="line">                        if ( millisToWait != null )&#123; </span><br><span class="line">                            millisToWait -= (System.currentTimeMillis() - startMillis); </span><br><span class="line">                            startMillis = System.currentTimeMillis(); </span><br><span class="line">                            if ( millisToWait &lt;= 0 )&#123; </span><br><span class="line">                                doDelete = true;    // timed out - delete our node </span><br><span class="line">                                break; </span><br><span class="line">                            &#125; </span><br><span class="line">                            wait(millisToWait); </span><br><span class="line">                        &#125;else&#123; </span><br><span class="line">                            wait(); </span><br><span class="line">                        &#125; </span><br><span class="line">                    &#125; </span><br><span class="line">                &#125; </span><br><span class="line">                // else it may have been deleted (i.e. lock released). Try to acquire again </span><br><span class="line">            &#125; </span><br><span class="line">        &#125; </span><br><span class="line">    &#125; </span><br><span class="line">    catch ( Exception e ) &#123; </span><br><span class="line">        doDelete = true; </span><br><span class="line">        throw e; </span><br><span class="line">    &#125; finally&#123; </span><br><span class="line">        if ( doDelete )&#123; </span><br><span class="line">            deleteOurPath(ourPath); </span><br><span class="line">        &#125; </span><br><span class="line">    &#125; </span><br><span class="line"> return haveTheLock; </span><br><span class="line">&#125; </span><br></pre></td></tr></table></figure>
-
-<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>对于 ZK 分布式锁而言:</p>
-<ul>
-<li>ZK 天生设计定位就是分布式协调，强一致性。锁的模型健壮、简单易用、适合做分布式锁。</li>
-<li>如果获取不到锁，只需要添加一个监听器就可以了，不用一直轮询，性能消耗较小。</li>
-</ul>
-<p>但是 ZK 也有其缺点：如果有较多的客户端频繁的申请加锁、释放锁，对于 ZK 集群的压力会比较大。</p>
+<p>通过以上步骤，我们可以使用Java中的序列化机制来优雅地实现字典编码与其对应的含义的对应关系，从而简化编码数据的管理和维护。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>在本文中，我们介绍了如何使用Java中的序列化机制来实现编码与其对应的含义的对应关系，从而简化编码数据的管理和维护。通过序列化和反序列化，我们可以高效地传递和保存对象，提高应用程序的效率和可维护性。</p>
 
       
 
@@ -302,7 +245,7 @@
 		<ul class="article-tag-list">
 			 
         		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">分布式锁</a>
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color4">序列化</a>
         		</li>
       		
 		</ul>
@@ -358,7 +301,7 @@
     <a class="close js-modal-close" href="javascript:;"><i class="icon icon-close"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//pan.baidu.com/share/qrcode?url=http://example.com/2021/08/01/2021-08-01-%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B9%8BZK%E9%94%81/" alt="微信分享二维码">
+      <img src="//pan.baidu.com/share/qrcode?url=http://example.com/2023/03/23/%E4%BC%98%E9%9B%85%E7%9A%84%E5%AE%9E%E7%8E%B0%E5%AD%97%E5%85%B8%E7%BF%BB%E8%AF%91/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -372,18 +315,9 @@
   
 <nav id="article-nav">
   
-    <a href="/2021/08/10/2021-08-10-Synchronized%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90/" id="article-nav-newer" class="article-nav-link-wrap">
-      <i class="icon-circle-left"></i>
-      <div class="article-nav-title">
-        
-          Synchronized原理分析
-        
-      </div>
-    </a>
   
-  
-    <a href="/2021/07/25/2021-07-25-%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B9%8B%E6%95%B0%E6%8D%AE%E5%BA%93%E9%94%81/" id="article-nav-older" class="article-nav-link-wrap">
-      <div class="article-nav-title">分布式锁之数据库锁</div>
+    <a href="/2021/08/31/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">浅谈分布式锁</div>
       <i class="icon-circle-right"></i>
     </a>
   
@@ -540,11 +474,15 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">Synchronized</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">分布式锁</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">Synchronized</a>
+                <a href="javascript:void(0)" class="js-tag color4">序列化</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -553,10 +491,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">Java线程池</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">序列化</a>
               </li>
             
             <div class="clearfix"></div>

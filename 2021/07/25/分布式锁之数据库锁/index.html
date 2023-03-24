@@ -6,22 +6,20 @@
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge" >
   <link rel="dns-prefetch" href="http://example.com">
-  <title>Synchronized原理分析 | Hexo</title>
+  <title>分布式锁之数据库锁 | Hexo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="加锁和释放锁的原理Monitorenter和Monitorexit指令，会让对象在执行，使其锁计数器加1或者减1。每一个对象在同一时间只与一个monitor(锁)相关联，而一个monitor在同一时间只能被一个线程获得，一个对象在尝试获得与这个对象相关联的Monitor锁的所有权的时候，monitorenter指令会发生如下3中情况之一：  monitor计数器为0，意味着目前还没有被获得，那这个">
+  <meta name="description" content="数据库锁数据库锁大体可以分为两类  表锁（代表项目：liquibase） 排他锁（代表项目：flyway） 乐观锁（基本不会使用乐观锁作为分布式锁，这里就不具体描述了）  表锁数据库表可能是最简单的分布式锁，就是直接创建一张锁表，然后通过操作该表中的数据来实现了。当我们要锁住某个方法或资源时，我们就在该表中增加一条记录，想要释放锁的时候就删除这条记录。 就用liquibase举例子 123456C">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Synchronized原理分析">
-<meta property="og:url" content="http://example.com/2021/08/10/2021-08-10-Synchronized%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90/index.html">
+<meta property="og:title" content="分布式锁之数据库锁">
+<meta property="og:url" content="http://example.com/2021/07/25/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B9%8B%E6%95%B0%E6%8D%AE%E5%BA%93%E9%94%81/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="加锁和释放锁的原理Monitorenter和Monitorexit指令，会让对象在执行，使其锁计数器加1或者减1。每一个对象在同一时间只与一个monitor(锁)相关联，而一个monitor在同一时间只能被一个线程获得，一个对象在尝试获得与这个对象相关联的Monitor锁的所有权的时候，monitorenter指令会发生如下3中情况之一：  monitor计数器为0，意味着目前还没有被获得，那这个">
+<meta property="og:description" content="数据库锁数据库锁大体可以分为两类  表锁（代表项目：liquibase） 排他锁（代表项目：flyway） 乐观锁（基本不会使用乐观锁作为分布式锁，这里就不具体描述了）  表锁数据库表可能是最简单的分布式锁，就是直接创建一张锁表，然后通过操作该表中的数据来实现了。当我们要锁住某个方法或资源时，我们就在该表中增加一条记录，想要释放锁的时候就删除这条记录。 就用liquibase举例子 123456C">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="http://img.litongxue.icu/schronized.jpg">
-<meta property="article:published_time" content="2021-08-10T01:16:58.000Z">
-<meta property="article:modified_time" content="2021-10-19T15:16:08.354Z">
+<meta property="article:published_time" content="2021-07-25T13:53:51.000Z">
+<meta property="article:modified_time" content="2021-09-10T03:25:52.953Z">
 <meta property="article:author" content="John Doe">
-<meta property="article:tag" content="Synchronized">
+<meta property="article:tag" content="分布式锁">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://img.litongxue.icu/schronized.jpg">
   
     <link rel="alternative" href="/atom.xml" title="Hexo" type="application/atom+xml">
   
@@ -151,92 +149,74 @@
             <canvas data-colors="#eaeaea" data-sectionHeight="100" data-contentId="js-content" id="myCanvas1" class="anm-canvas"></canvas>
           </div>
           <div id="js-content" class="content-ll">
-            <article id="post-2021-08-10-Synchronized原理分析" class="article article-type-post " itemscope itemprop="blogPost">
+            <article id="post-分布式锁之数据库锁" class="article article-type-post " itemscope itemprop="blogPost">
   <div class="article-inner">
     
       <header class="article-header">
         
   
     <h1 class="article-title" itemprop="name">
-      Synchronized原理分析
+      分布式锁之数据库锁
     </h1>
   
 
         
-        <a href="/2021/08/10/2021-08-10-Synchronized%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90/" class="archive-article-date">
-  	<time datetime="2021-08-10T01:16:58.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2021-08-10</time>
+        <a href="/2021/07/25/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B9%8B%E6%95%B0%E6%8D%AE%E5%BA%93%E9%94%81/" class="archive-article-date">
+  	<time datetime="2021-07-25T13:53:51.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2021-07-25</time>
 </a>
         
       </header>
 <!--      <div align="center" class="post-count">
-        字数：2.2k字 | 预计阅读时长：7分钟
+        字数：1.7k字 | 预计阅读时长：8分钟
       </div> -->
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h3 id="加锁和释放锁的原理"><a href="#加锁和释放锁的原理" class="headerlink" title="加锁和释放锁的原理"></a>加锁和释放锁的原理</h3><p><code>Monitorenter</code>和<code>Monitorexit</code>指令，会让对象在执行，使其锁计数器加1或者减1。每一个对象在同一时间只与一个monitor(锁)相关联，而一个monitor在同一时间只能被一个线程获得，一个对象在尝试获得与这个对象相关联的Monitor锁的所有权的时候，monitorenter指令会发生如下3中情况之一：</p>
+        <h3 id="数据库锁"><a href="#数据库锁" class="headerlink" title="数据库锁"></a>数据库锁</h3><p>数据库锁大体可以分为两类</p>
 <ul>
-<li>monitor计数器为0，意味着目前还没有被获得，那这个线程就会立刻获得然后把锁计数器+1，一旦+1，别的线程再想获取，就需要等待</li>
-<li>如果这个monitor已经拿到了这个锁的所有权，又重入了这把锁，那锁计数器就会累加，变成2，并且随着重入的次数，会一直累加</li>
-<li>这把锁已经被别的线程获取了，等待锁释放</li>
+<li>表锁（代表项目：liquibase）</li>
+<li>排他锁（代表项目：flyway）</li>
+<li>乐观锁（基本不会使用乐观锁作为分布式锁，这里就不具体描述了）</li>
 </ul>
-<p><code>monitorexit指令</code>：释放对于monitor的所有权，释放过程很简单，就是讲monitor的计数器减1，如果减完以后，计数器不是0，则代表刚才是重入进来的，当前线程还继续持有这把锁的所有权，如果计数器变成0，则代表当前线程不再拥有该monitor的所有权，即释放锁。</p>
-<p><img src="http://img.litongxue.icu/schronized.jpg" alt="java-thread-x-key-schronized-2"></p>
-<p>该图可以看出，任意线程对Object的访问，首先要获得Object的监视器，如果获取失败，该线程就进入同步状态，线程状态变为BLOCKED，当Object的监视器占有者释放后，在同步队列中得线程就会有机会重新获取该监视器。</p>
+<h4 id="表锁"><a href="#表锁" class="headerlink" title="表锁"></a>表锁</h4><p>数据库表可能是最简单的分布式锁，就是直接创建一张锁表，然后通过操作该表中的数据来实现了。当我们要锁住某个方法或资源时，我们就在该表中增加一条记录，想要释放锁的时候就删除这条记录。</p>
+<p>就用liquibase举例子</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> `databasechangeloglock` (</span><br><span class="line">  `id` <span class="type">int</span>(<span class="number">11</span>) <span class="keyword">DEFAULT</span> <span class="keyword">NULL</span> COMMENT <span class="string">&#x27;锁的ID&#x27;</span>,</span><br><span class="line">  `locked` <span class="type">int</span>(<span class="number">11</span>) <span class="keyword">DEFAULT</span> <span class="keyword">NULL</span> COMMENT <span class="string">&#x27;锁定状态&#x27;</span>,</span><br><span class="line">  `lockgranted` datetime <span class="keyword">DEFAULT</span> <span class="keyword">NULL</span> COMMENT <span class="string">&#x27;锁定时间&#x27;</span>,</span><br><span class="line">  `lockedby` <span class="type">varchar</span>(<span class="number">255</span>) <span class="keyword">DEFAULT</span> <span class="keyword">NULL</span> COMMENT <span class="string">&#x27;锁定人&#x27;</span></span><br><span class="line">) ENGINE<span class="operator">=</span>InnoDB <span class="keyword">DEFAULT</span> CHARSET<span class="operator">=</span>utf8;</span><br></pre></td></tr></table></figure>
+
+<p>当某个节点（或模块）在进行数据库表的增删改操作的时候会插入一条数据</p>
 <span id="more"></span>
 
-<h3 id="锁的类型"><a href="#锁的类型" class="headerlink" title="锁的类型"></a>锁的类型</h3><p>在Java早期版本中，synchronized属于重量级锁，效率低下，因为操作系统实现线程之间的切换时需要从用户态转换到核心态，这个状态之间的转换需要相对比较长的时间，时间成本相对较高，在Java SE 1.6里Synchronied同步锁，一共有四种状态：<code>无锁</code>、<code>偏向锁</code>、<code>轻量级所</code>、<code>重量级锁</code>，它会随着竞争情况逐渐升级。锁可以升级但是不可以降级，目的是为了提供获取锁和释放锁的效率。</p>
-<p>锁膨胀（升级）方向： 无锁 → 偏向锁 → 轻量级锁 → 重量级锁 (此过程是不可逆的)</p>
-<h3 id="偏向锁"><a href="#偏向锁" class="headerlink" title="偏向锁"></a>偏向锁</h3><p>当线程1访问代码块并获取锁对象时，会在java对象头和栈帧中记录偏向的锁的threadID，因为偏向锁不会主动释放锁，因此以后线程1再次获取锁的时候，需要比较当前线程的threadID和Java对象头中的threadID是否一致，如果一致（还是线程1获取锁对象），则无需使用CAS来加锁、解锁；如果不一致（其他线程，如线程2要竞争锁对象，而偏向锁不会主动释放因此还是存储的线程1的threadID），那么需要查看Java对象头中记录的线程1是否存活，如果没有存活，那么锁对象被重置为无锁状态，其它线程（线程2）可以竞争将其设置为偏向锁；如果存活，那么立刻查找该线程（线程1）的栈帧信息，如果还是需要继续持有这个锁对象，那么暂停当前线程1，撤销偏向锁，升级为轻量级锁，如果线程1 不再使用该锁对象，那么将锁对象状态设为无锁状态，重新偏向新的线程。</p>
-<h4 id="偏向锁的撤销"><a href="#偏向锁的撤销" class="headerlink" title="偏向锁的撤销"></a>偏向锁的撤销</h4><p> 偏向锁使用了一种等待竞争出现才会释放锁的机制。所以当其他线程尝试获取偏向锁时，持有偏向锁的线程才会释放锁。但是偏向锁的撤销需要等到全局安全点(就是当前线程没有正在执行的字节码)。它会首先暂停拥有偏向锁的线程，让你后检查持有偏向锁的线程是否活着。如果线程不处于活动状态，直接将对象头设置为无锁状态。如果线程活着，JVM会遍历栈帧中的锁记录，栈帧中的锁记录和对象头要么偏向于其他线程，要么恢复到无锁状态或者标记对象不适合作为偏向锁。</p>
-<h3 id="轻量级锁"><a href="#轻量级锁" class="headerlink" title="轻量级锁"></a><strong>轻量级锁</strong></h3><p>线程1获取轻量级锁时会先把锁对象的对象头MarkWord复制一份到线程1的栈帧中创建的用于存储锁记录的空间（称为DisplacedMarkWord），然后使用CAS把对象头中的内容替换为线程1存储的锁记录（DisplacedMarkWord）的地址；</p>
-<p>如果在线程1复制对象头的同时（在线程1CAS之前），线程2也准备获取锁，复制了对象头到线程2的锁记录空间中，但是在线程2CAS的时候，发现线程1已经把对象头换了，线程2的CAS失败，那么线程2就尝试使用自旋锁来等待线程1释放锁。 自旋锁简单来说就是让线程2在循环中不断CAS</p>
-<p>但是如果自旋的时间太长也不行，因为自旋是要消耗CPU的，因此自旋的次数是有限制的，比如10次或者100次，如果自旋次数到了线程1还没有释放锁，或者线程1还在执行，线程2还在自旋等待，这时又有一个线程3过来竞争这个锁对象，那么这个时候轻量级锁就会膨胀为重量级锁。重量级锁把除了拥有锁的线程都阻塞，防止CPU空转。</p>
-<table>
-<thead>
-<tr>
-<th>锁</th>
-<th>优点</th>
-<th>缺点</th>
-<th>使用场景</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>偏向锁</td>
-<td>加锁和解锁不需要CAS操作，没有额外的性能消耗，和执行非同步方法相比仅存在纳秒级的差距</td>
-<td>如果线程间存在锁竞争，会带来额外的锁撤销的消耗</td>
-<td>适用于只有一个线程访问同步快的场景</td>
-</tr>
-<tr>
-<td>轻量级锁</td>
-<td>竞争的线程不会阻塞，提高了响应速度</td>
-<td>如线程成始终得不到锁竞争的线程，使用自旋会消耗CPU性能</td>
-<td>追求响应时间，同步快执行速度非常快</td>
-</tr>
-<tr>
-<td>重量级锁</td>
-<td>线程竞争不适用自旋，不会消耗CPU</td>
-<td>线程阻塞，响应时间缓慢，在多线程下，频繁的获取释放锁，会带来巨大的性能消耗</td>
-<td>追求吞吐量，同步快执行速度较长</td>
-</tr>
-</tbody></table>
-<h3 id="synchronized的缺陷"><a href="#synchronized的缺陷" class="headerlink" title="synchronized的缺陷"></a>synchronized的缺陷</h3><ul>
-<li><code>效率低</code>：锁的释放情况少，只有代码执行完毕或者异常结束才会释放锁；试图获取锁的时候不能设定超时，不能中断一个正在使用锁的线程，相对而言，Lock可以中断和设置超时</li>
-<li><code>不够灵活</code>：加锁和释放的时机单一，每个锁仅有一个单一的条件(某个对象)，相对而言，读写锁更加灵活</li>
-<li><code>无法知道是否成功获得锁</code>，相对而言，Lock可以拿到状态，如果成功获取锁，….，如果获取失败，…..</li>
-</ul>
-<h3 id="Lock解决相应问题"><a href="#Lock解决相应问题" class="headerlink" title="Lock解决相应问题"></a>Lock解决相应问题</h3><p>Lock类这里不做过多解释，主要看里面的4个方法:</p>
-<ul>
-<li><code>lock()</code>: 加锁</li>
-<li><code>unlock()</code>: 解锁</li>
-<li><code>tryLock()</code>: 尝试获取锁，返回一个boolean值</li>
-<li><code>tryLock(long,TimeUtil)</code>: 尝试获取锁，可以设置超时</li>
-</ul>
-<p>Synchronized只有锁只与一个条件(是否获取锁)相关联，不灵活，后来<code>Condition与Lock的结合</code>解决了这个问题。</p>
-<p>多线程竞争一个锁时，其余未得到锁的线程只能不停的尝试获得锁，而不能中断。高并发的情况下会导致性能下降。ReentrantLock的lockInterruptibly()方法可以优先考虑响应中断。 一个线程等待时间过长，它可以中断自己，然后ReentrantLock响应这个中断，不再让这个线程继续等待。有了这个机制，使用ReentrantLock时就不会像synchronized那样产生死锁了。</p>
-<p>synchronized实际上是非公平的，新来的线程有可能立即获得监视器，而在等待区中等候已久的线程可能再次等待，不过这种抢占的方式可以预防饥饿。</p>
-<p>公平锁：多个线程申请锁时是相对公平的，在申请锁时如果有其它线程已经占用了锁，则进行排队等待处理。</p>
-<p>非公平锁：多个线程申请锁时相对不公平，与公平锁相同，都会存在排队的情况，但对于一个新线程需要获取锁时不是先排队等待，而是先尝试获取锁，不成功时再进入队列排队等待。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> `databasechangeloglock`(`locked`, `lockgranted`, `lockedby`) <span class="keyword">values</span> (`<span class="number">1</span>`, `插入时间（也就是获取锁的时间）`, `锁定人（谁获取到了锁）`);</span><br></pre></td></tr></table></figure>
+
+<p>当其他节点想要插入时，先回判断这张表的count，如果count等于0直接插入，代表该节点获取到锁。如果发现已经存在数据，会在规定时间内循环尝试获取这把锁，一但超过时间没有获取到，就会放弃获取</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">waitForLock</span><span class="params">()</span> <span class="keyword">throws</span> LockException &#123;</span><br><span class="line"></span><br><span class="line">    <span class="type">boolean</span> <span class="variable">locked</span> <span class="operator">=</span> <span class="literal">false</span>;</span><br><span class="line">    <span class="type">long</span> <span class="variable">timeToGiveUp</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Date</span>().getTime() + (getChangeLogLockWaitTime() * <span class="number">1000</span> * <span class="number">60</span>);</span><br><span class="line">    <span class="keyword">while</span> (!locked &amp;&amp; (<span class="keyword">new</span> <span class="title class_">Date</span>().getTime() &lt; timeToGiveUp)) &#123;</span><br><span class="line">        locked = acquireLock();</span><br><span class="line">        <span class="keyword">if</span> (!locked) &#123;</span><br><span class="line">            Scope.getCurrentScope().getLog(getClass()).info(<span class="string">&quot;Waiting for changelog lock....&quot;</span>);</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                Thread.sleep(getChangeLogLockRecheckTime() * <span class="number">1000</span>);</span><br><span class="line">            &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">                <span class="comment">// Restore thread interrupt status</span></span><br><span class="line">                Thread.currentThread().interrupt();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!locked) &#123;</span><br><span class="line">        DatabaseChangeLogLock[] locks = listLocks();</span><br><span class="line">        String lockedBy;</span><br><span class="line">        <span class="keyword">if</span> (locks.length &gt; <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="type">DatabaseChangeLogLock</span> <span class="variable">lock</span> <span class="operator">=</span> locks[<span class="number">0</span>];</span><br><span class="line">            lockedBy = lock.getLockedBy() + <span class="string">&quot; since &quot;</span> +</span><br><span class="line">                    DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT)</span><br><span class="line">                            .format(lock.getLockGranted());</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            lockedBy = <span class="string">&quot;UNKNOWN&quot;</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">LockException</span>(<span class="string">&quot;Could not acquire change log lock.  Currently locked by &quot;</span> + lockedBy);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><span class="line">@Override</span><br><span class="line">    public boolean acquireLock() throws LockException &#123;</span><br><span class="line">        if (hasChangeLogLock) &#123;</span><br><span class="line">            return true;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        quotingStrategy = database.getObjectQuotingStrategy();</span><br><span class="line"></span><br><span class="line">        Executor executor = Scope.getCurrentScope().getSingleton(ExecutorService.class).getExecutor(&quot;jdbc&quot;, database);</span><br><span class="line"></span><br><span class="line">        try &#123;</span><br><span class="line">            database.rollback();</span><br><span class="line">            this.init();</span><br><span class="line"></span><br><span class="line">            Boolean locked = Scope.getCurrentScope().getSingleton(ExecutorService.class).getExecutor(&quot;jdbc&quot;, database).queryForObject(</span><br><span class="line">                    new SelectFromDatabaseChangeLogLockStatement(&quot;LOCKED&quot;), Boolean.class</span><br><span class="line">            );</span><br><span class="line"></span><br><span class="line">            if (locked) &#123;</span><br><span class="line">                return false;</span><br><span class="line">            &#125; else &#123;</span><br><span class="line"></span><br><span class="line">                executor.comment(&quot;Lock Database&quot;);</span><br><span class="line">                int rowsUpdated = executor.update(new LockDatabaseChangeLogStatement());</span><br><span class="line">                if ((rowsUpdated == -1) &amp;&amp; (database instanceof MSSQLDatabase)) &#123;</span><br><span class="line">                    Scope.getCurrentScope().getLog(getClass()).fine(</span><br><span class="line">                            &quot;Database did not return a proper row count (Might have NOCOUNT enabled)&quot;</span><br><span class="line">                    );</span><br><span class="line">                    database.rollback();</span><br><span class="line">                    Sql[] sql = SqlGeneratorFactory.getInstance().generateSql(</span><br><span class="line">                            new LockDatabaseChangeLogStatement(), database</span><br><span class="line">                    );</span><br><span class="line">                    if (sql.length != 1) &#123;</span><br><span class="line">                        throw new UnexpectedLiquibaseException(&quot;Did not expect &quot;+sql.length+&quot; statements&quot;);</span><br><span class="line">                    &#125;</span><br><span class="line">                    rowsUpdated = executor.update(new RawSqlStatement(&quot;EXEC sp_executesql N&#x27;SET NOCOUNT OFF &quot; +</span><br><span class="line">                            sql[0].toSql().replace(&quot;&#x27;&quot;, &quot;&#x27;&#x27;&quot;) + &quot;&#x27;&quot;));</span><br><span class="line">                &#125;</span><br><span class="line">                if (rowsUpdated &gt; 1) &#123;</span><br><span class="line">                    throw new LockException(&quot;Did not update change log lock correctly&quot;);</span><br><span class="line">                &#125;</span><br><span class="line">                if (rowsUpdated == 0)</span><br><span class="line">                &#123;</span><br><span class="line">                    // another node was faster</span><br><span class="line">                    return false;</span><br><span class="line">                &#125;</span><br><span class="line">                database.commit();</span><br><span class="line">                Scope.getCurrentScope().getLog(getClass()).info(coreBundle.getString(&quot;successfully.acquired.change.log.lock&quot;));</span><br><span class="line"></span><br><span class="line">                hasChangeLogLock = true;</span><br><span class="line"></span><br><span class="line">                database.setCanCacheLiquibaseTableInfo(true);</span><br><span class="line">                return true;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; catch (Exception e) &#123;</span><br><span class="line">            throw new LockException(e);</span><br><span class="line">        &#125; finally &#123;</span><br><span class="line">            try &#123;</span><br><span class="line">                database.rollback();</span><br><span class="line">            &#125; catch (DatabaseException e) &#123;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h5 id="缺点"><a href="#缺点" class="headerlink" title="缺点"></a>缺点</h5><p>   1、这把锁强依赖数据库的可用性，数据库是一个单点，一旦数据库挂掉，会导致业务系统不可用。<br>    2、这把锁没有失效时间，一旦解锁操作失败，就会导致锁记录一直在数据库中，其他线程无法再获得到锁。<br>    3、这把锁只能是非阻塞的，因为数据的insert操作，一旦插入失败就会直接报错。没有获得锁的线程并不会进入排队队列，要想再次获得锁就要再次触发获得锁操作。<br>    4、这把锁是非重入的，同一个线程在没有释放锁之前无法再次获得该锁。因为数据中数据已经存在了。</p>
+<h4 id="排他锁"><a href="#排他锁" class="headerlink" title="排他锁"></a>排他锁</h4><p>在对任意记录进行修改前，先尝试为该记录加上排他锁。如果加锁失败，说明该记录正在被修改，那么当前查询可能要等待或者抛出异常。 具体响应方式由开发者根据实际需要决定。如果成功加锁，那么就可以对记录做修改，事务完成后就会解锁了。其间如果有其他对该记录做修改或加排他锁的操作，都会等待我们解锁或直接抛出异常。</p>
+<p>下面代码为flyway检查锁过程</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">lock</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (!exists()) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        doLock();</span><br><span class="line">        lockDepth++;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (SQLException e) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">FlywaySqlException</span>(<span class="string">&quot;Unable to lock table &quot;</span> + <span class="built_in">this</span>, e);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">exists</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> doExists();</span><br><span class="line">    &#125; <span class="keyword">catch</span> (SQLException e) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">FlywaySqlException</span>(<span class="string">&quot;Unable to check whether table &quot;</span> + <span class="built_in">this</span> + <span class="string">&quot; exists&quot;</span>, e);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">protected</span> <span class="type">boolean</span> <span class="title function_">doExists</span><span class="params">()</span> <span class="keyword">throws</span> SQLException &#123;</span><br><span class="line">    <span class="keyword">return</span> exists(schema, <span class="literal">null</span>, name);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">protected</span> <span class="type">boolean</span> <span class="title function_">exists</span><span class="params">(Schema catalog, Schema schema, String table, String... tableTypes)</span> <span class="keyword">throws</span> SQLException &#123;</span><br><span class="line">    String[] types = tableTypes;</span><br><span class="line">    <span class="keyword">if</span> (types.length == <span class="number">0</span>) &#123;</span><br><span class="line">        types = <span class="literal">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="type">ResultSet</span> <span class="variable">resultSet</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">    <span class="type">boolean</span> found;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        resultSet = database.jdbcMetaData.getTables(</span><br><span class="line">                catalog == <span class="literal">null</span> ? <span class="literal">null</span> : catalog.getName(),</span><br><span class="line">                schema == <span class="literal">null</span> ? <span class="literal">null</span> : schema.getName(),</span><br><span class="line">                table,</span><br><span class="line">                types);</span><br><span class="line">        found = resultSet.next();</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        JdbcUtils.closeResultSet(resultSet);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> found;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>加锁过程</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title function_">doLock</span><span class="params">()</span> <span class="keyword">throws</span> SQLException &#123;</span><br><span class="line">    jdbcTemplate.execute(<span class="string">&quot;SELECT * FROM &quot;</span> + <span class="built_in">this</span> + <span class="string">&quot; FOR UPDATE&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>解锁过程，解锁分为两种，显示解锁与隐示解锁</p>
+<p>隐示解锁只需要commit</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">releaseLock</span><span class="params">()</span> <span class="keyword">throws</span> LockException &#123;</span><br><span class="line"></span><br><span class="line">        <span class="type">ObjectQuotingStrategy</span> <span class="variable">incomingQuotingStrategy</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">        <span class="keyword">if</span> (<span class="built_in">this</span>.quotingStrategy != <span class="literal">null</span>) &#123;</span><br><span class="line">            incomingQuotingStrategy = database.getObjectQuotingStrategy();</span><br><span class="line">            database.setObjectQuotingStrategy(<span class="built_in">this</span>.quotingStrategy);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="type">Executor</span> <span class="variable">executor</span> <span class="operator">=</span> Scope.getCurrentScope().getSingleton(ExecutorService.class).getExecutor(<span class="string">&quot;jdbc&quot;</span>, database);</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (<span class="built_in">this</span>.hasDatabaseChangeLogLockTable()) &#123;</span><br><span class="line">                executor.comment(<span class="string">&quot;Release Database Lock&quot;</span>);</span><br><span class="line">                database.rollback();</span><br><span class="line">                <span class="type">int</span> <span class="variable">updatedRows</span> <span class="operator">=</span> executor.update(<span class="keyword">new</span> <span class="title class_">UnlockDatabaseChangeLogStatement</span>());</span><br><span class="line">                <span class="keyword">if</span> ((updatedRows == -<span class="number">1</span>) &amp;&amp; (database <span class="keyword">instanceof</span> MSSQLDatabase)) &#123;</span><br><span class="line">                    Scope.getCurrentScope().getLog(getClass()).fine(</span><br><span class="line">                            <span class="string">&quot;Database did not return a proper row count (Might have NOCOUNT enabled.)&quot;</span></span><br><span class="line">                    );</span><br><span class="line">                    database.rollback();</span><br><span class="line">                    Sql[] sql = SqlGeneratorFactory.getInstance().generateSql(</span><br><span class="line">                            <span class="keyword">new</span> <span class="title class_">UnlockDatabaseChangeLogStatement</span>(), database</span><br><span class="line">                    );</span><br><span class="line">                    <span class="keyword">if</span> (sql.length != <span class="number">1</span>) &#123;</span><br><span class="line">                        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">UnexpectedLiquibaseException</span>(<span class="string">&quot;Did not expect &quot;</span>+sql.length+<span class="string">&quot; statements&quot;</span>);</span><br><span class="line">                    &#125;</span><br><span class="line">                    updatedRows = executor.update(</span><br><span class="line">                            <span class="keyword">new</span> <span class="title class_">RawSqlStatement</span>(</span><br><span class="line">                                    <span class="string">&quot;EXEC sp_executesql N&#x27;SET NOCOUNT OFF &quot;</span> +</span><br><span class="line">                                            sql[<span class="number">0</span>].toSql().replace(<span class="string">&quot;&#x27;&quot;</span>, <span class="string">&quot;&#x27;&#x27;&quot;</span>) + <span class="string">&quot;&#x27;&quot;</span></span><br><span class="line">                            )</span><br><span class="line">                    );</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">if</span> (updatedRows != <span class="number">1</span>) &#123;</span><br><span class="line">                    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">LockException</span>(</span><br><span class="line">                            <span class="string">&quot;Did not update change log lock correctly.\n\n&quot;</span> +</span><br><span class="line">                                    updatedRows +</span><br><span class="line">                                    <span class="string">&quot; rows were updated instead of the expected 1 row using executor &quot;</span> +</span><br><span class="line">                                    executor.getClass().getName() + <span class="string">&quot;&quot;</span> +</span><br><span class="line">                                    <span class="string">&quot; there are &quot;</span> +</span><br><span class="line">                                    executor.queryForInt(</span><br><span class="line">                                            <span class="keyword">new</span> <span class="title class_">RawSqlStatement</span>(</span><br><span class="line">                                                    <span class="string">&quot;SELECT COUNT(*) FROM &quot;</span> +</span><br><span class="line">                                                            database.getDatabaseChangeLogLockTableName()</span><br><span class="line">                                            )</span><br><span class="line">                                    ) +</span><br><span class="line">                                    <span class="string">&quot; rows in the table&quot;</span></span><br><span class="line">                    );</span><br><span class="line">                &#125;</span><br><span class="line">                database.commit();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">LockException</span>(e);</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                hasChangeLogLock = <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line">                database.setCanCacheLiquibaseTableInfo(<span class="literal">false</span>);</span><br><span class="line">                Scope.getCurrentScope().getLog(getClass()).info(<span class="string">&quot;Successfully released change log lock&quot;</span>);</span><br><span class="line">                database.rollback();</span><br><span class="line">            &#125; <span class="keyword">catch</span> (DatabaseException e) &#123;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (incomingQuotingStrategy != <span class="literal">null</span>) &#123;</span><br><span class="line">                database.setObjectQuotingStrategy(incomingQuotingStrategy);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>显示解锁需要额外删除加入的数据（显示解锁分为多种，下面代码为其中一种）</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title function_">doUnlock</span><span class="params">()</span> <span class="keyword">throws</span> SQLException &#123;</span><br><span class="line">    <span class="keyword">if</span> (lockDepth == <span class="number">1</span>) &#123;</span><br><span class="line">        insertRowLock.doUnlock(getDeleteLockTemplate());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> String <span class="title function_">getDeleteLockTemplate</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="string">&quot;DELETE FROM &quot;</span> + <span class="built_in">this</span> + <span class="string">&quot; WHERE version = &#x27;?&#x27; AND DESCRIPTION = &#x27;flyway-lock&#x27;&quot;</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>相比于表锁，排他锁可以有效的解决无法释放锁和阻塞锁的问题</strong></p>
+<p>1、阻塞锁？for update语句会在执行成功后立即返回，在执行失败时一直处于阻塞状态，直到成功。<br>2、锁定之后服务宕机，无法释放？使用这种方式，服务宕机之后数据库会自己把锁释放掉。</p>
+<h3 id="优缺点"><a href="#优缺点" class="headerlink" title="优缺点"></a>优缺点</h3><p><strong>优点</strong>：简单，易于理解</p>
+<p><strong>缺点</strong>：会有各种各样的问题（操作数据库需要一定的开销，使用数据库的行级锁并不一定靠谱，性能不靠谱）</p>
 
       
 
@@ -281,7 +261,7 @@
 		<ul class="article-tag-list">
 			 
         		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">Synchronized</a>
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">分布式锁</a>
         		</li>
       		
 		</ul>
@@ -337,7 +317,7 @@
     <a class="close js-modal-close" href="javascript:;"><i class="icon icon-close"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//pan.baidu.com/share/qrcode?url=http://example.com/2021/08/10/2021-08-10-Synchronized%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90/" alt="微信分享二维码">
+      <img src="//pan.baidu.com/share/qrcode?url=http://example.com/2021/07/25/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B9%8B%E6%95%B0%E6%8D%AE%E5%BA%93%E9%94%81/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -351,18 +331,18 @@
   
 <nav id="article-nav">
   
-    <a href="/2021/08/20/2021-08-20-%E4%BB%80%E4%B9%88%E6%98%AF%E9%94%81/" id="article-nav-newer" class="article-nav-link-wrap">
+    <a href="/2021/08/01/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B9%8BZK%E9%94%81/" id="article-nav-newer" class="article-nav-link-wrap">
       <i class="icon-circle-left"></i>
       <div class="article-nav-title">
         
-          什么是锁
+          分布式锁之ZK锁
         
       </div>
     </a>
   
   
-    <a href="/2021/08/01/2021-08-01-%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B9%8BZK%E9%94%81/" id="article-nav-older" class="article-nav-link-wrap">
-      <div class="article-nav-title">分布式锁之ZK锁</div>
+    <a href="/2021/07/20/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B9%8BRedis%E4%B8%8ERedisson/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">分布式锁之Redis与Redisson</div>
       <i class="icon-circle-right"></i>
     </a>
   
@@ -519,11 +499,15 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">Synchronized</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">分布式锁</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">Synchronized</a>
+                <a href="javascript:void(0)" class="js-tag color4">序列化</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -532,10 +516,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">Java线程池</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">序列化</a>
               </li>
             
             <div class="clearfix"></div>

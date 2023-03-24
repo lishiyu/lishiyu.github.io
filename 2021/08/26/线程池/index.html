@@ -6,20 +6,24 @@
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge" >
   <link rel="dns-prefetch" href="http://example.com">
-  <title>浅谈分布式锁 | Hexo</title>
+  <title>Java线程池 | Hexo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="分布式锁">
+  <meta name="description" content="线程池原理分析">
 <meta property="og:type" content="article">
-<meta property="og:title" content="浅谈分布式锁">
-<meta property="og:url" content="http://example.com/2021/08/31/2021-08-31-%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/index.html">
+<meta property="og:title" content="Java线程池">
+<meta property="og:url" content="http://example.com/2021/08/26/%E7%BA%BF%E7%A8%8B%E6%B1%A0/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="分布式锁">
+<meta property="og:description" content="线程池原理分析">
 <meta property="og:locale" content="en_US">
-<meta property="article:published_time" content="2021-08-31T12:32:30.000Z">
-<meta property="article:modified_time" content="2021-10-19T15:17:09.318Z">
+<meta property="og:image" content="http://img.litongxue.icu/relation.jpg">
+<meta property="og:image" content="http://img.litongxue.icu/AlibabaDevelopmentManual.jpg">
+<meta property="og:image" content="http://img.litongxue.icu/flow.jpg">
+<meta property="article:published_time" content="2021-08-26T13:00:30.000Z">
+<meta property="article:modified_time" content="2021-10-19T15:16:53.818Z">
 <meta property="article:author" content="John Doe">
-<meta property="article:tag" content="分布式锁">
+<meta property="article:tag" content="Java线程池">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://img.litongxue.icu/relation.jpg">
   
     <link rel="alternative" href="/atom.xml" title="Hexo" type="application/atom+xml">
   
@@ -149,65 +153,152 @@
             <canvas data-colors="#eaeaea" data-sectionHeight="100" data-contentId="js-content" id="myCanvas1" class="anm-canvas"></canvas>
           </div>
           <div id="js-content" class="content-ll">
-            <article id="post-2021-08-31-分布式锁" class="article article-type-post " itemscope itemprop="blogPost">
+            <article id="post-线程池" class="article article-type-post " itemscope itemprop="blogPost">
   <div class="article-inner">
     
       <header class="article-header">
         
   
     <h1 class="article-title" itemprop="name">
-      浅谈分布式锁
+      Java线程池
     </h1>
   
 
         
-        <a href="/2021/08/31/2021-08-31-%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" class="archive-article-date">
-  	<time datetime="2021-08-31T12:32:30.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2021-08-31</time>
+        <a href="/2021/08/26/%E7%BA%BF%E7%A8%8B%E6%B1%A0/" class="archive-article-date">
+  	<time datetime="2021-08-26T13:00:30.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2021-08-26</time>
 </a>
         
       </header>
 <!--      <div align="center" class="post-count">
-        字数：970字 | 预计阅读时长：3分钟
+        字数：2.1k字 | 预计阅读时长：7分钟
       </div> -->
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a><font color=red>背景</font></h2><p>现在随着企业架构的升级，越来越多的项目采用分布式部署，分布式场景中的数据一致性问题一直是一个比较重要的话题。</p>
-<h3 id="什么是分布式？"><a href="#什么是分布式？" class="headerlink" title="什么是分布式？"></a>什么是分布式？</h3><p>分布式的CAP理论告诉我们：</p>
-<blockquote>
-<p>任何一个分布式系统都无法同时满足一致性（Consistency）、可用性（Availability）和分区容错性（Partition tolerance），最多只能同时满足两项。</p>
-</blockquote>
-<p>所以，很多系统在设计之初就要对这三者做出取舍。在互联网领域的绝大多数的场景中，都需要牺牲强一致性来换取系统的高可用性，系统往往只需要保证“最终一致性”，只要这个最终时间是在用户可以接受的范围内即可。</p>
-<span id="more"></span>
-
-<h3 id="什么是分布式锁？"><a href="#什么是分布式锁？" class="headerlink" title="什么是分布式锁？"></a>什么是分布式锁？</h3><p>在讲分布式锁之前先了解一下<a href="/2021/08/20/2021-08-20-%E4%BB%80%E4%B9%88%E6%98%AF%E9%94%81/" title="什么是锁">什么是锁</a></p>
-<p>分布式锁，是单机锁的一种扩展，主要是为了锁住分布式系统中不同机器代码的物理块或逻辑块。以此保证不同机器之间的逻辑一致性。在集群等多服务器中经常使用到同步处理一下业务，这是普通的事务是满足不了业务需求，需要分布式锁。</p>
-<p>分布式锁是控制分布式系统或不同系统之间共同访问共享资源的一种锁实现，如果不同的系统或同一个系统的不同主机之间共享了某个资源时，往往需要互斥来防止彼此干扰来保证一致性。</p>
-<p><font color=red><strong>其实无论是单机锁或者是分布式锁，目的就是确保在多个线程并发时，只有一个线程在同一刻操作这个业务或者说方法、变量。</strong></font></p>
-<h3 id="分布式锁需要解决的问题："><a href="#分布式锁需要解决的问题：" class="headerlink" title="分布式锁需要解决的问题："></a>分布式锁需要解决的问题：</h3><p>   1、互斥性：任意时刻，只能有一个客户端获取锁，不能同时有两个客户端获取到锁。<br>   2、安全性：锁只能被持有该锁的客户端删除，不能由其它客户端删除。<br>   3、死锁：获取锁的客户端因为某些原因（如down机等）而未能释放锁，其它客户端再也无法获取到该锁。<br>   4、容错：当部分节点（redis节点等）down机时，客户端仍然能够获取锁和释放锁。</p>
-<h3 id="分布式锁应该具备哪些条件"><a href="#分布式锁应该具备哪些条件" class="headerlink" title="分布式锁应该具备哪些条件"></a>分布式锁应该具备哪些条件</h3><ol>
-<li>在分布式系统环境下，一个方法在同一时间只能被一个机器的一个线程执行；</li>
-<li>高可用与高性能的获取锁与释放锁；</li>
-<li>具备可重入特性；</li>
-<li>具备锁失效机制，防止死锁；</li>
-<li>具备非阻塞锁特性，即没有获取到锁将直接返回获取锁失败。</li>
+        <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>Java线程池的写法和参数是面试中出现频率很高的基础题。越是基础的东西，特别是对中高级工程师的面试者，需要回答的符合自己面试的职位等级。</p>
+<h3 id="1、线程创建销毁的开销（为什么要使用线程池）"><a href="#1、线程创建销毁的开销（为什么要使用线程池）" class="headerlink" title="1、线程创建销毁的开销（为什么要使用线程池）"></a>1、线程创建销毁的开销（为什么要使用线程池）</h3><ol>
+<li>对操作系统来说,创建一个线程的代价是十分昂贵的, 需要给它分配内存、列入调度，同时在线程切换的时候还要执行内存换页，CPU 的缓存被清空,切换回来的时候还要重新从内存中读取信息,破坏了数据的局部性。【分配内存、列入调度、内存换页、清空缓存和重新读取】</li>
+<li>Java线程的线程栈区别于堆，它是不受Java程序控制的，只受系统资源限制，如果每个用户请求都新建线程的话，很容易出现内存溢出（OOM）</li>
+<li>线程其实也是一个对象，创建一个对象，需要经过类加载过程，销毁一个对象，需要走GC垃圾回收流程</li>
 </ol>
-<h3 id="常见的分布式锁"><a href="#常见的分布式锁" class="headerlink" title="常见的分布式锁"></a>常见的分布式锁</h3><ul>
-<li><a href="/2021/07/25/2021-07-25-%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B9%8B%E6%95%B0%E6%8D%AE%E5%BA%93%E9%94%81/" title="数据库锁">数据库锁</a></li>
-<li><a href="/2021/08/01/2021-08-01-%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B9%8BZK%E9%94%81/" title="ZooKeeper锁（ZK锁）">ZooKeeper锁（ZK锁）</a></li>
-<li><a href="/2021/07/20/2021-07-20-%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B9%8BRedis%E4%B8%8ERedisson/" title="Redis锁">Redis锁</a></li>
-<li>基于Consul的分布式锁（没研究过，有兴趣的小伙伴可以自己查查相关文章）</li>
-<li>一些公司的自研锁：如阿里（Tair），美团（Cerberus），有赞（Bond），谷歌（Chubby）等等</li>
+<p>总结：</p>
+<ol>
+<li>频繁申请/销毁资源和调度资源，将带来额外的消耗，可能会非常巨大。</li>
+<li>对资源无限申请缺少抑制手段，将引发系统资源耗尽的风险。</li>
+<li>系统无法合理管理内部的资源分布，将降低系统的稳定性。</li>
+</ol>
+<span id="more"></span>
+<h3 id="2、线程池的优势"><a href="#2、线程池的优势" class="headerlink" title="2、线程池的优势"></a>2、线程池的优势</h3><ol>
+<li>降低资源开销：由于线程是反复利用的，降低了创建线程分配资源和销毁线程的开销。</li>
+<li>提高响应速度：由于线程是提前预热的，因此减少了创建线程这段时间的开销。</li>
+<li>提高系统资源可管理性：使用线程池统一分配、管理和监控。</li>
+</ol>
+<h3 id="3、线程池详解"><a href="#3、线程池详解" class="headerlink" title="3、线程池详解"></a>3、线程池详解</h3><p><img src="http://img.litongxue.icu/relation.jpg" alt="relation"></p>
+<p>如上图所示，线程池的Java实现都是继承于JUC(java.util.concurrent)的Executor接口。这个接口只有一个execute方法，代表了其行为。ExecutorService接口继承Executor，加上了生命周期的处理方法。其常用实现类如：ThreadPoolExecutor、ScheduledThreadPoolExecutor、ForkJoinPool的默认参数构造类都有在Executors这个工具类里直接实例化。</p>
+<p><strong>但是阿里巴巴开发手册不推荐使用Executors这个工具类。</strong></p>
+<p><img src="http://img.litongxue.icu/AlibabaDevelopmentManual.jpg" alt="Alibaba Development Manual"></p>
+<p><strong>原因</strong></p>
+<p><strong>CachedThreadPool</strong></p>
+<p>创建方法：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ExecutorService cachedThreadPool = Executors.newCachedThreadPool();</span><br></pre></td></tr></table></figure>
+
+<p>源码：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"> public static ExecutorService newCachedThreadPool() &#123;</span><br><span class="line">    return new ThreadPoolExecutor(0, Integer.MAX_VALUE,</span><br><span class="line">                                  60L, TimeUnit.SECONDS,</span><br><span class="line">                                  new SynchronousQueue&lt;Runnable&gt;());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可缓存线程池：</p>
+<ol>
+<li>线程数无限制（无核心线程数，最大线程数为Integer最大值）</li>
+<li>有空闲线程则复用空闲线程，若无空闲线程则新建线程</li>
+<li>一定程序减少频繁创建/销毁线程，减少系统开销</li>
+</ol>
+<p><strong>FixedThreadPool</strong></p>
+<p>创建方法：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ExecutorService fixedThreadPool = Executors.newFixedThreadPool(int nThreads);</span><br></pre></td></tr></table></figure>
+
+<p>源码：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">public static ExecutorService newFixedThreadPool(int nThreads) &#123;</span><br><span class="line">    return new ThreadPoolExecutor(nThreads, nThreads,</span><br><span class="line">                                  0L, TimeUnit.MILLISECONDS,</span><br><span class="line">                                  new LinkedBlockingQueue&lt;Runnable&gt;());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>定长线程池：</p>
+<ol>
+<li>可控制线程最大并发数（同时执行的线程数）</li>
+<li>超出的线程会在队列中等待</li>
+</ol>
+<p><strong>ScheduledThreadPool</strong></p>
+<p>创建方法：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(int nThreads);</span><br></pre></td></tr></table></figure>
+
+<p>源码：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">public static ScheduledExecutorService newScheduledThreadPool(int corePoolSize) &#123;</span><br><span class="line">    return new ScheduledThreadPoolExecutor(corePoolSize);</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line"></span><br><span class="line">public ScheduledThreadPoolExecutor(int corePoolSize) &#123;</span><br><span class="line">    super(corePoolSize, Integer.MAX_VALUE,</span><br><span class="line">          DEFAULT_KEEPALIVE_MILLIS, MILLISECONDS,</span><br><span class="line">          new DelayedWorkQueue());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>定长线程池：</p>
+<ol>
+<li>支持定时及周期性任务执行</li>
+</ol>
+<p><strong>SingleThreadExecutor</strong></p>
+<p>创建方法：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ExecutorService singleThreadPool = Executors.newScheduledThreadPool(int nThreads);</span><br></pre></td></tr></table></figure>
+
+<p>源码：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">public static ExecutorService newSingleThreadExecutor() &#123;</span><br><span class="line">    return new FinalizableDelegatedExecutorService</span><br><span class="line">        (new ThreadPoolExecutor(1, 1,</span><br><span class="line">                                0L, TimeUnit.MILLISECONDS,</span><br><span class="line">                                new LinkedBlockingQueue&lt;Runnable&gt;()));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>单线程化的线程池：</p>
+<ol>
+<li>只会用唯一的工作线程来执行任务</li>
+<li>保证所有任务按照指定顺序(FIFO, LIFO, 优先级)执行</li>
+</ol>
+<p><strong>我们需要自己了解ThreadPoolExecutor初始化参数的含义和使用方法</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">public ThreadPoolExecutor(</span><br><span class="line">    int corePoolSize,           核心线程数</span><br><span class="line">    int maximumPoolSize,        最大线程数</span><br><span class="line">    long keepAliveTime,         存活时间</span><br><span class="line">    TimeUnit unit,            线程空闲存活时间单位</span><br><span class="line">    BlockingQueue&lt;Runnable&gt; workQueue,  阻塞队列</span><br><span class="line">    ThreadFactory threadFactory,    线程工厂</span><br><span class="line">    RejectedExecutionHandler handler)   拒绝策略</span><br></pre></td></tr></table></figure>
+
+<p>ThreadPoolExecutor有七个参数（第四个参数是时间单位），第一个是核心线程数，如果线程池无事可做，还是会保留这些线程。第二个是最大线程数，超过核心线程数的部分都会在第三个和第四个参数合起来决定的最长空闲存活时间超过后被剔除。第五个参数是阻塞队列，线程忙不过来要去这里面排队。第六个是线程池工厂，主要决定队列也装不下的线程怎么处理，最后一个是拒绝策略，默认策略是抛出异常。</p>
+<p><strong>线程池执行流程</strong></p>
+<p><img src="http://img.litongxue.icu/flow.jpg" alt="flow"></p>
+<p><strong>阻塞队列</strong></p>
+<ul>
+<li><strong>ArrayBlockingQueue</strong>：使用数组实现的有界阻塞队列，特性<strong>先进先出</strong></li>
+<li><strong>LinkedBlockingQueue</strong>：使用链表实现的阻塞队列，特性先进先出，可以设置其容量，默认为<code>Interger.MAX_VALUE</code>，特性<strong>先进先出</strong></li>
+<li><strong>PriorityBlockingQueue</strong>：使用平衡二叉树<strong>堆</strong>，实现的具有<strong>优先级</strong>的无界阻塞队列</li>
+<li><strong>DelayQueue</strong>：无界阻塞延迟队列，队列中每个元素均有过期时间，当从队列获取元素时，只有过期元素才会出队列。队列头元素是最块要过期的元素。</li>
+<li><strong>SynchronousQueue</strong>：<strong>一个不存储元素的阻塞队列</strong>，每个插入操作，必须等到另一个线程调用移除操作，否则插入操作一直处于阻塞状态</li>
+<li><strong>LinkedTransferQueue</strong>：一个由链表结构组成的无界阻塞队列</li>
+<li><strong>LinkedBlockingDeque</strong>：一个由链表结构组成的双向阻塞队列</li>
 </ul>
-<h3 id="分布式锁实现方式优缺点："><a href="#分布式锁实现方式优缺点：" class="headerlink" title="分布式锁实现方式优缺点："></a>分布式锁实现方式优缺点：</h3><p>数据库锁：</p>
-<p>优点：直接使用数据库，使用简单。</p>
-<p>缺点：分布式系统大多数瓶颈都在数据库，使用数据库锁会增加数据库负担。</p>
-<p>Redis锁：</p>
-<p>优点：redis性能很高，适合高并发下的加锁机制；许多公司试用后可以用到企业级项目中，社区活跃度高</p>
-<p>缺点：如果加锁的redis master 故障，刚好数据也还没有同步到slave，那其他加锁的客户端则会再次加锁成功，则相当于有两个客户大都拿到了锁。</p>
-<p>zookeeper锁：</p>
-<p>优点：不依靠超时时间释放锁，可靠性高。</p>
-<p>缺点：性能比不上缓存锁，因为要频繁的创建节点删除节点。</p>
+<p><strong>拒绝策略</strong></p>
+<ul>
+<li><strong>AbortPolicy</strong>：当任务添加到线程池中被拒绝时，它将抛出 RejectedExecutionException异常</li>
+<li><strong>CallerRunsPolicy</strong>：当任务添加到线程池中被拒绝时，会在线程池当前正在运行的Thread线程池中处理被拒绝的任务。</li>
+<li><strong>DiscardOldestPolicy</strong>：当任务添加到线程池中被拒绝时，线程池会放弃等待队列中最旧的未处理任务，然后将被拒绝的任务添加到等待队列中。</li>
+<li><strong>DiscardPolicy</strong>：当任务添加到线程池中被拒绝时，线程池将丢弃被拒绝的任务。</li>
+<li><strong>自定义</strong>：如果以上策略都不符合业务场景，可以自己定义一个拒绝策略。只要实现RejectedExecutionHandler接口，并且实现rejectedExecution方法就可以。</li>
+</ul>
+<p><strong>ForkJoinPool的原理</strong></p>
+<p> 本质上将一个任务进一步细分，内部使用“工作窃取”算法，让任务在各个CPU上尽可能均衡。</p>
+<ol>
+<li>每个工作线程都有自己的工作队列WorkQueue；</li>
+<li>这是一个双端队列，它是线程私有的；</li>
+<li>ForkJoinTask中fork的子任务，将放入运行该任务的工作线程的队头，工作线程将以LIFO（全称Last in, First out，后进先出）的顺序来处理工作队列中的任务；</li>
+<li>为了最大化地利用CPU，空闲的线程将从其它线程的队列中“窃取”任务来执行；</li>
+<li>从工作队列的尾部窃取任务，以减少竞争；</li>
+<li>双端队列的操作：push()/pop()仅在其所有者工作线程中调用，poll()是由其它线程窃取任务时调用的；</li>
+<li>当只剩下最后一个任务时，还是会存在竞争，是通过CAS来实现的；</li>
+</ol>
+<p><strong>线程池的底层原理</strong></p>
+<p> Java线程的实现是通过调用<strong>native方法</strong>调用<strong>操作系统的pthread API</strong>，由<strong>内核线程</strong>统一管理。一个<strong>实现了Runnable的类只是标识可用多线程运行</strong>，真正产生大开销的是<strong>new Thread()<strong>时进行的内核调用。</strong>而线程池技术将worker线程缓存下来进行重用</strong>。</p>
+<p><strong>线程池的关闭</strong></p>
+<p> 关闭线程池可以调用shutdownNow和shutdown两个方法来实现。</p>
+<ul>
+<li>shutdownNow：对正在执行的任务全部发出interrupt()，停止执行，对还未开始执行的任务全部取消，并且返回还没开始的任务列表。</li>
+<li>shutdown：当我们调用shutdown后，线程池将不再接受新的任务，但也不会去强制终止已经提交或者正在执行中的任务。</li>
+</ul>
+<p><strong>总结</strong></p>
+<p>本文的回答部分从线程池实现目标、实现和关键设计、底层原理四个方面说明线程池，具有一定的系统性。补充问答部分作为问题的深入在面试时被深入提问问到或者面试官示意继续深入来说的时候使用。</p>
+<h2 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h2><ul>
+<li>《Java并发编程艺术》</li>
+<li><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/87bff5cc8d8c">https://www.jianshu.com/p/87bff5cc8d8c</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/programmer_at/article/details/79799267">https://blog.csdn.net/programmer_at/article/details/79799267</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/u013332124/article/details/79587436">https://blog.csdn.net/u013332124/article/details/79587436</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.journaldev.com/1069/threadpoolexecutor-java-thread-pool-example-executorservice">https://www.journaldev.com/1069/threadpoolexecutor-java-thread-pool-example-executorservice</a></li>
+</ul>
 
       
 
@@ -252,7 +343,7 @@
 		<ul class="article-tag-list">
 			 
         		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">分布式锁</a>
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">Java线程池</a>
         		</li>
       		
 		</ul>
@@ -308,7 +399,7 @@
     <a class="close js-modal-close" href="javascript:;"><i class="icon icon-close"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//pan.baidu.com/share/qrcode?url=http://example.com/2021/08/31/2021-08-31-%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" alt="微信分享二维码">
+      <img src="//pan.baidu.com/share/qrcode?url=http://example.com/2021/08/26/%E7%BA%BF%E7%A8%8B%E6%B1%A0/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -322,18 +413,18 @@
   
 <nav id="article-nav">
   
-    <a href="/2023/03/23/2023-03-23-%E4%BC%98%E9%9B%85%E7%9A%84%E5%AE%9E%E7%8E%B0%E5%AD%97%E5%85%B8%E7%BF%BB%E8%AF%91/" id="article-nav-newer" class="article-nav-link-wrap">
+    <a href="/2021/08/31/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" id="article-nav-newer" class="article-nav-link-wrap">
       <i class="icon-circle-left"></i>
       <div class="article-nav-title">
         
-          优雅的实现字典翻译
+          浅谈分布式锁
         
       </div>
     </a>
   
   
-    <a href="/2021/08/26/2021-08-26-%E7%BA%BF%E7%A8%8B%E6%B1%A0/" id="article-nav-older" class="article-nav-link-wrap">
-      <div class="article-nav-title">Java线程池</div>
+    <a href="/2021/08/20/%E4%BB%80%E4%B9%88%E6%98%AF%E9%94%81/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">什么是锁</div>
       <i class="icon-circle-right"></i>
     </a>
   
@@ -490,11 +581,15 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">Synchronized</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">分布式锁</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">Synchronized</a>
+                <a href="javascript:void(0)" class="js-tag color4">序列化</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -503,10 +598,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">Java线程池</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">序列化</a>
               </li>
             
             <div class="clearfix"></div>
